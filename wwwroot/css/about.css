@@ -1,0 +1,129 @@
+﻿body {
+    font-family: "Poppins", Arial, sans-serif;
+    background-image: url('../img/final_back.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    color: #1a1a1a;
+}
+
+/* CONTAINER PRINCIPAL */
+.about-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 100px 20px 80px;
+    min-height: 80vh;
+}
+
+.about-content {
+    background-color: rgba(255, 255, 255, 0.96);
+    max-width: 950px;
+    width: 100%;
+    padding: 50px 45px;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+
+    /* TÍTULOS */
+    .about-content h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1a2a6c;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+
+    .about-content p {
+        text-align: center;
+        color: #444;
+        font-size: 1rem;
+        margin-bottom: 40px;
+        line-height: 1.7;
+    }
+
+/* SECÇÕES */
+.about-section {
+    margin-bottom: 50px;
+}
+
+    .about-section h2 {
+        color: #1a2a6c;
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+        font-weight: 700;
+        text-align: center;
+    }
+
+    .about-section p {
+        color: #333;
+        font-size: 1rem;
+        text-align: justify;
+        line-height: 1.8;
+    }
+
+    .about-section ul {
+        list-style: none;
+        padding: 0;
+        margin-top: 10px;
+    }
+
+    .about-section li {
+        background: #f8f9ff;
+        border-left: 4px solid #2948b1;
+        padding: 12px 15px;
+        margin: 10px 0;
+        border-radius: 10px;
+        color: #333;
+        font-size: 0.95rem;
+    }
+
+/* PORQUÊ NÓS */
+.whyus-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 25px;
+    margin-top: 25px;
+}
+
+.whyus-card {
+    background: #f8f9ff;
+    border: 1px solid #e4e6f3;
+    border-radius: 15px;
+    padding: 25px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(26, 42, 108, 0.05);
+    transition: all 0.3s ease;
+}
+
+    .whyus-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(26, 42, 108, 0.1);
+    }
+
+    .whyus-card h3 {
+        color: #2948b1;
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+    }
+
+    .whyus-card p {
+        color: #555;
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+/* RESPONSIVO */
+@media (max-width: 768px) {
+    .about-content {
+        padding: 35px 25px;
+    }
+
+    .about-section h2 {
+        font-size: 1.3rem;
+    }
+
+    .whyus-grid {
+        grid-template-columns: 1fr;
+    }
+}

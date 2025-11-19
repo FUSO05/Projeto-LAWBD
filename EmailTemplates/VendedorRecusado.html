@@ -1,0 +1,100 @@
+﻿<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedido de Vendedor Rejeitado - AutoMarket</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            background-color: rgb(18, 57, 128);
+            color: white;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+
+            .header h1 {
+                font-size: 24px;
+                margin: 0;
+                color: #FF8C00;
+            }
+
+        .content {
+            padding: 30px;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+            .content h2 {
+                color: rgb(18, 57, 128);
+                font-size: 22px;
+                margin-bottom: 20px;
+            }
+
+            .content p {
+                font-size: 16px;
+                margin-bottom: 15px;
+            }
+
+                .content p.important {
+                    color: #e74c3c; /* vermelho para rejeição */
+                    font-weight: bold;
+                }
+
+        .footer {
+            padding: 20px;
+            font-size: 12px;
+            color: #999;
+            text-align: center;
+            border-top: 1px solid #eee;
+        }
+
+        .btn {
+            display: inline-block;
+            margin: 20px auto;
+            padding: 15px 30px;
+            font-size: 16px;
+            color: white;
+            background-color: #e74c3c; /* vermelho */
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: bold;
+            box-shadow: 0px 4px 8px rgba(231,76,60,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AutoMarket</h1>
+        </div>
+        <div class="content">
+            <h2>Olá {{Nome}}!</h2>
+            <p class="important">Lamentamos informar que o seu pedido para se tornar vendedor na AutoMarket foi **rejeitado**.</p>
+            <p>Poderá submeter novamente no futuro, certificando-se de que todos os dados estão corretos e completos.</p>
+        </div>
+        <div class="footer">
+            <p>Se não solicitou este pedido, por favor contacte o suporte.</p>
+            <p>&copy; 2025 AutoMarket. Todos os direitos reservados.</p>
+        </div>
+    </div>
+</body>
+</html>

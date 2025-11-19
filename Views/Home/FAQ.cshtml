@@ -1,0 +1,76 @@
+﻿@{
+    ViewData["Title"] = "Perguntas Frequentes";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/faq.css" />
+}
+
+<div class="faq-container">
+    <div class="faq-content">
+        <h1>Perguntas Frequentes (FAQ)</h1>
+        <p>Encontre aqui as respostas para as perguntas mais comuns sobre o AutoMarket.</p>
+
+        <div class="faq-list">
+            <div class="faq-item">
+                <button class="faq-question">💬 O que é o AutoMarket?</button>
+                <div class="faq-answer">
+                    <p>O AutoMarket é uma plataforma online que permite comprar e vender veículos usados de forma simples, rápida e segura em todo o território português.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">🧾 Como posso anunciar o meu carro?</button>
+                <div class="faq-answer">
+                    <p>Basta criar uma conta gratuita, aceder à área de vendas e preencher os detalhes do seu veículo. O seu anúncio será revisto e publicado em poucos minutos.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">🔐 É seguro comprar um carro pelo AutoMarket?</button>
+                <div class="faq-answer">
+                    <p>Sim! Trabalhamos com verificação de anúncios e mecanismos de segurança que garantem uma experiência confiável e transparente para todos os utilizadores.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">💸 Existem custos para usar o AutoMarket?</button>
+                <div class="faq-answer">
+                    <p>O registo e a navegação são gratuitos. Apenas anúncios premium ou serviços adicionais podem ter custos associados, sempre devidamente indicados.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">📞 Como posso entrar em contacto com o suporte?</button>
+                <div class="faq-answer">
+                    <p>Pode entrar em contacto connosco através da <a asp-controller="Home" asp-action="Contacts">página de contacto</a> ou por email: <strong>support@automarket.pt</strong>.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">🔄 Posso editar ou remover o meu anúncio?</button>
+                <div class="faq-answer">
+                    <p>Sim, basta iniciar sessão e aceder à sua área de utilizador. Lá pode editar, pausar ou eliminar os seus anúncios a qualquer momento.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // FAQ Toggle Script
+        document.querySelectorAll(".faq-question").forEach(button => {
+            button.addEventListener("click", () => {
+                const answer = button.nextElementSibling;
+                button.classList.toggle("active");
+
+                if (button.classList.contains("active")) {
+                    answer.style.maxHeight = answer.scrollHeight + "px";
+                } else {
+                    answer.style.maxHeight = 0;
+                }
+            });
+        });
+    </script>
+}

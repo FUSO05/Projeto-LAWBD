@@ -1,0 +1,932 @@
+﻿
+
+
+
+
+
+
+Email: admin@email.com
+Senha: Admin123!
+
+
+
+4) Proteger endpoints AJAX / ações que alteram estado (bloquear/ativar)
+
+No teu dashboard tens funções JS que alteram o estado (bloquearutilizador, ativarutilizador) — não deixes isso só no cliente. Cria ações POST no AdminController protegidas por [Authorize(Roles = "Admin")] e ValidateAntiForgeryToken.
+
+Exemplo de ações server-side:
+
+[HttpPost]
+[Authorize(Roles = "Admin")]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> BloquearUtilizador(int id, string motivo)
+{
+    var user = await _context.Utilizadores.FindAsync(id);
+    if (user == null) return NotFound();
+
+    user.Ativo = false;
+    // opcional: registar motivo em tabela de logs
+    await _context.SaveChangesAsync();
+
+    return Json(new { success = true });
+}
+
+[HttpPost]
+[Authorize(Roles = "Admin")]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> AtivarUtilizador(int id)
+{
+    var user = await _context.Utilizadores.FindAsync(id);
+    if (user == null) return NotFound();
+
+    user.Ativo = true;
+    await _context.SaveChangesAsync();
+
+    return Json(new { success = true });
+}
+
+
+E no JavaScript fazes fetch POST para esses endpoints, incluindo o token antiforgery. Uma forma simples: renderizar o token num meta no _Layout e ler no JS.
+
+No _Layout.cshtml (no <head>):
+
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Xsrf
+<meta name="csrf-token" content="@Xsrf.GetAndStoreTokens(HttpContext).RequestToken" />
+
+
+No JS:
+
+function bloquearutilizador(id) {
+    const motivo = prompt("Registar motivo do bloqueio:");
+    if (!motivo) return;
+
+    fetch('/Admin/BloquearUtilizador', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'RequestVerificationToken': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ id: id, motivo: motivo })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById("status" + id).textContent = "Bloqueado";
+            alert("Utilizador bloqueado.");
+        } else {
+            alert("Erro ao bloquear.");
+        }
+    });
+}
+
+
+Isto evita que um utilizador não autorizado consiga invocar essas ações.
+
+5) Esconder link no UI (já tens parcialmente)
+
+No teu _Layout já mostras o menu condicionalmente. Usa User.IsInRole("Admin") para mostrar o link do painel apenas a admins:
+
+@if (User.IsInRole("Admin"))
+{
+    <a asp-controller="Admin" asp-action="GerirUtilizadores">Painel Admin</a>
+}
+
+
+Mesmo que um utilizador veja o link, a validação server-side com [Authorize] é o que realmente protege o acesso.
+
+6) Testes rápidos que deves fazer
+
+Tentar aceder /Admin/GerirUtilizadores enquanto não autenticado → vai para login.
+
+Logar como utilizador normal e tentar aceder → deve dar 403 ou ir para /Account/AccessDenied.
+
+Logar como admin e aceder → deve funcionar.
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+(Agora o que preciso de fazer é conseguir criar um vendedor. pra isso eu vou ter um botão no meu menu em que vai dizer "Comece a vender". Quando clicado aí, vai abrir uma página para criar conta de vendedor. quando clicado em criar, recebo um aviso de que o pedido está a aguardar confirmação, e esse pedido é confirmado pelo admin. no menu do admin vamos ter uma aba para confirmar ou rejeitar os vendedores. quando confirmado, o vendedor recebe um email a indicar que a sua conta foi aceite, se rejeitado recebe um email a dizer que a seua conta como vendedor foi rejeitada. (@model AutoMarket.Models.ViewModels.UtilizadorViewModel
+
+@{
+    ViewData["Title"] = "Área de Comprador - Definições";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="~/css/usermenu.css" />
+
+<main class="user-settings-container">
+    <aside class="sidebar">
+        <h3>Menu Comprador</h3>
+        <ul>
+            <li><a href="#">Minhas Reservas</a></li>
+            <li><a href="#">Compras</a></li>
+            <li><a href="#">Visitas</a></li>
+            <li><a asp-controller="Account" asp-action="UserMenuFavoritos">Favoritos</a></li>
+            <li><a asp-controller="Account" asp-action="UserMenu" class="active">Definições</a></li>
+        </ul>
+    </aside>
+
+    <!-- Formulário com POST -->
+    <section class="settings-form">
+        <h2>Definições da Conta</h2>
+
+        <form asp-action="SalvarDefinicoes" method="post" enctype="multipart/form-data">
+            <div class="profile-upload">
+                <img id="profilePreview" src="@Model.FotolUrl" alt="Foto de Perfil">
+                <label for="profileImage" class="upload-label">Alterar Foto</label>
+                <input type="file" id="profileImage" name="ProfileImage" accept="image/*">
+            </div>
+
+            <div>
+                <label for="email">Email</label>
+                <input type="email" id="email" name="Email" value="@Model.Email">
+            </div>
+
+            <div>
+                <label for="morada">Morada</label>
+                <input type="text" id="morada" name="Morada" value="@Model.Morada">
+            </div>
+
+            <div>
+                <label for="contacto">Contacto</label>
+                <input type="tel" id="contacto" name="Contacto" value="@Model.Contacto">
+            </div>
+
+            <div>
+                <label for="password">Password</label>
+                <input type="password" id="password" name="Password" placeholder="********">
+            </div>
+
+            <button type="submit" class="btn-save">Salvar Alterações</button>
+        </form>
+    </section>
+</main>
+
+@section Scripts {
+    <script>
+        // Preview instantâneo da foto
+        const profileInput = document.getElementById('profileImage');
+        const profilePreview = document.getElementById('profilePreview');
+
+        profileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    profilePreview.src = e.target.result; // Atualiza a imagem imediatamente
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+}) (using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using AutoMarket.Models;
+using AutoMarket.Services;
+using AutoMarket.Models.ViewModels;
+using Microsoft.EntityFrameworkCore;
+
+namespace AutoMarket.Controllers
+{
+    public class AccountController : Controller
+    {
+        private readonly AppDbContext _context;
+        private readonly IPasswordHasher<Utilizador> _passwordHasher;
+        private readonly IAuthService _authService;
+        private readonly EmailService _emailService;
+
+        public AccountController(AppDbContext context, IPasswordHasher<Utilizador> passwordHasher, IAuthService authService, EmailService emailService)
+        {
+            _context = context;
+            _passwordHasher = passwordHasher;
+            _authService = authService;
+            _emailService = emailService;
+        }
+
+        // --- EMAIL DE ATIVAÇÃO ---
+        private async Task EnviarEmailDeAtivacaoAsync(Utilizador user)
+        {
+            string ativacaoUrl = Url.Action(
+                "ConfirmEmail",
+                "Account",
+                new { userId = user.Id, token = user.ActivationToken },
+                Request.Scheme
+            );
+
+            string templatePath = Path.Combine(Directory.GetCurrentDirectory(), "EmailTemplates", "AtivacaoConta.html");
+
+            var placeholders = new Dictionary<string, string>
+            {
+                { "Nome", user.Nome },
+                { "AtivacaoUrl", ativacaoUrl }
+            };
+
+            await _emailService.EnviarEmailComTemplateAsync(user.Email, "Ativação de Conta", templatePath, placeholders);
+        }
+
+        // --- LOGIN ---
+        [HttpGet]
+        public IActionResult Login()
+        {
+            return View("~/Views/Account/Login.cshtml", new LoginViewModel());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Login(LoginViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var user = await _authService.GetUserByEmailAsync(model.Email);
+
+            if (user != null && user.EmailConfirmed && _authService.ValidatePassword(user, model.Password))
+            {
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, user.Email),
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new Claim(ClaimTypes.Role, user.TipoUser ?? "User"),
+                    new Claim("FotoUrl", string.IsNullOrEmpty(user.FotoUrl) ? "/img/avatar.png" : user.FotoUrl)
+                };
+
+
+                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                var authProperties = new AuthenticationProperties
+                {
+                    IsPersistent = model.RememberMe,
+                    ExpiresUtc = model.RememberMe ? DateTime.UtcNow.AddDays(14) : DateTime.UtcNow.AddHours(1)
+                };
+
+                await HttpContext.SignInAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    new ClaimsPrincipal(claimsIdentity),
+                    authProperties
+                );
+
+                ViewBag.UserPhotoUrl = user.FotoUrl ?? "/img/avatar.png";
+
+                return RedirectToAction("Index", "Home");
+            }
+
+            ModelState.AddModelError("", "Email ou Password inválidos, ou conta não confirmada.");
+            return View(model);
+        }
+
+        // --- REGISTO ---
+        [HttpGet]
+        public IActionResult Register()
+        {
+            return View("~/Views/Account/Register.cshtml", new RegisterViewModel());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Register(RegisterViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var existingUser = await _authService.GetUserByEmailAsync(model.Email);
+            if (existingUser != null)
+            {
+                ModelState.AddModelError("Email", "O email já está em uso.");
+                return View(model);
+            }
+
+            // Gerar token de ativação
+            string token = Guid.NewGuid().ToString();
+
+            var user = new Utilizador
+            {
+                Nome = model.Nome,
+                Email = model.Email,
+                Contacto = model.Contacto,
+                Morada = model.Morada,
+                Password = _passwordHasher.HashPassword(null, model.Password),
+                EmailConfirmed = false,
+                ActivationToken = token,
+                ActivationTokenExpiry = DateTime.UtcNow.AddHours(24) // Token válido por 24h
+            };
+
+            _context.Utilizadores.Add(user);
+            await _context.SaveChangesAsync();
+
+            try
+            {
+                await EnviarEmailDeAtivacaoAsync(user);
+                TempData["MensagemSucesso"] = "Registo concluído! Verifique o seu email para ativar a conta em até 24 horas.";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao enviar email de ativação: {ex.Message}");
+                TempData["MensagemErro"] = "Ocorreu um problema ao enviar o email de ativação. Tente novamente mais tarde.";
+                return View(model);
+            }
+
+            return RedirectToAction("Login");
+        }
+
+        // --- CONFIRMAÇÃO DE EMAIL ---
+        [HttpGet]
+        public async Task<IActionResult> ConfirmEmail(int userId, string token)
+        {
+            var user = await _context.Utilizadores.FindAsync(userId);
+            if (user == null || user.EmailConfirmed)
+                return BadRequest("Usuário inválido ou já confirmado.");
+
+            if (user.ActivationToken != token || user.ActivationTokenExpiry < DateTime.UtcNow)
+                return BadRequest("Token inválido ou expirado.");
+
+            user.EmailConfirmed = true;
+            user.ActivationToken = null;
+            user.ActivationTokenExpiry = null;
+
+            await _context.SaveChangesAsync();
+
+            TempData["MensagemSucesso"] = "Conta ativada com sucesso!";
+            return RedirectToAction("Login", "Account");
+        }
+
+        // --- LOGOUT ---
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToAction("Index", "Home");
+        }
+
+        // --- RECUPERAR PASSWORD ---
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View("~/Views/Account/ForgotPassword.cshtml");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ForgotPassword(string email)
+        {
+            var user = await _authService.GetUserByEmailAsync(email);
+
+            if (user == null)
+            {
+                TempData["MensagemErro"] = "Email não encontrado.";
+                return View();
+            }
+
+            string token = Guid.NewGuid().ToString();
+            await _authService.GeneratePasswordResetTokenAsync(user, token);
+
+            string resetUrl = Url.Action("ResetPassword", "Account", new { token }, Request.Scheme);
+            string templatePath = Path.Combine(Directory.GetCurrentDirectory(), "EmailTemplates", "ResetPassword.html");
+
+            var placeholders = new Dictionary<string, string>
+            {
+                { "Nome", user.Nome },
+                { "ResetUrl", resetUrl }
+            };
+
+            await _emailService.EnviarEmailComTemplateAsync(user.Email, "Recuperação de Password", templatePath, placeholders);
+
+            TempData["MensagemSucesso"] = "Um email de recuperação foi enviado.";
+            return RedirectToAction("Login");
+        }
+
+        [HttpGet]
+        public IActionResult ResetPassword(string token)
+        {
+            return View(new ResetPasswordViewModel { Token = token });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var success = await _authService.ResetPasswordAsync(model.Token, model.NewPassword);
+
+            if (success)
+            {
+                TempData["MensagemSucesso"] = "Password alterada com sucesso!";
+                return RedirectToAction("Login");
+            }
+
+            TempData["MensagemErro"] = "Falha ao redefinir a password (token inválido ou expirado).";
+            return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> UserMenu()
+        {
+            // Obter o ID do utilizador a partir dos Claims do cookie
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (userIdClaim == null)
+                return RedirectToAction("Login", "Account");
+
+            int userId = int.Parse(userIdClaim);
+
+            // Buscar o utilizador do BD
+            var user = await _context.Utilizadores.FindAsync(userId);
+            if (user == null)
+                return RedirectToAction("Login", "Account");
+
+            var model = new UtilizadorViewModel
+            {
+                Nome = user.Nome,
+                Email = user.Email,
+                Morada = user.Morada,
+                Contacto = user.Contacto,
+                FotolUrl = string.IsNullOrEmpty(user.FotoUrl) ? "https://i.pravatar.cc/100" : user.FotoUrl
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SalvarDefinicoes(UtilizadorViewModel model, IFormFile ProfileImage)
+        {
+            // Obter o ID do utilizador logado a partir dos Claims
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null)
+                return RedirectToAction("Login");
+
+            int userId = int.Parse(userIdClaim);
+            var user = await _context.Utilizadores.FindAsync(userId);
+
+            if (user == null)
+                return RedirectToAction("Login");
+
+            // Atualizar os campos
+            user.Email = model.Email;
+            user.Morada = model.Morada;
+            user.Contacto = model.Contacto;
+
+            // Atualizar password se preenchida
+            if (!string.IsNullOrEmpty(model.Password))
+            {
+                user.Password = _passwordHasher.HashPassword(user, model.Password);
+            }
+
+            // Atualizar foto se houver upload
+            if (ProfileImage != null && ProfileImage.Length > 0)
+            {
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                var uniqueFileName = $"{Guid.NewGuid()}_{ProfileImage.FileName}";
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await ProfileImage.CopyToAsync(fileStream);
+                }
+
+                user.FotoUrl = $"/uploads/{uniqueFileName}";
+            }
+
+            // Atualizar no banco
+            _context.Utilizadores.Update(user);
+            await _context.SaveChangesAsync();
+
+            // Atualizar os Claims no cookie para refletir a nova foto imediatamente
+            var claims = new List<Claim>
+    {
+        new Claim(ClaimTypes.Name, user.Email),
+        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new Claim(ClaimTypes.Role, user.TipoUser ?? "User"),
+        new Claim("FotoUrl", user.FotoUrl ?? "/img/avatar.png")
+    };
+            
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+
+            TempData["MensagemSucesso"] = "Alterações salvas com sucesso!";
+            return RedirectToAction("UserMenu");
+        }
+
+        public async Task<IActionResult> UserMenuFavoritos()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (userIdClaim == null)
+                return RedirectToAction("Login", "Account");
+
+            int userId = int.Parse(userIdClaim);
+
+            var comprador = await _context.Compradores
+                .Include(c => c.Utilizador)
+                .Include(c => c.Favoritos)
+                    .ThenInclude(f => f.Anuncio)
+                        .ThenInclude(a => a.Modelo)
+                            .ThenInclude(m => m.Marca)
+                .Include(c => c.Favoritos)
+                    .ThenInclude(f => f.Anuncio.Imagens)
+                .FirstOrDefaultAsync(c => c.UtilizadorId == userId);
+
+            if (comprador == null)
+                return RedirectToAction("Login", "Account");
+
+            var vm = new FavoritosViewModel
+            {
+                Utilizador = new UtilizadorViewModel
+                {
+                    Nome = comprador.Utilizador.Nome,
+                    FotolUrl = comprador.Utilizador.FotoUrl,
+                },
+                Favoritos = comprador.Favoritos.Select(f => f.Anuncio).ToList()
+            };
+
+            return View(vm);
+        }
+
+    }
+}
+) (@model AutoMarket.Models.ViewModels.GerirUtilizadoresAdminViewModel
+
+@{
+    ViewData["Title"] = "Admin Backoffice | AutoMarket";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="~/css/admin.css" />
+
+<main>
+    <aside class="sidebar">
+        <h3>Menu Admin</h3>
+        <ul>
+            <li><a href="#" class="active">Gerir Utilizadores</a></li>
+            <li><a href="#">Estatísticas</a></li>
+            <li><a href="#">Histórico</a></li>
+            <li><a href="#">Configurações</a></li>
+        </ul>
+    </aside>
+
+    <section class="admin-list">
+        <h2>Lista de Utilizadores</h2>
+
+        <div class="admin-filters">
+            <input type="text" id="searchInput" placeholder="Pesquisar utilizador..." value="@ViewBag.SearchTerm" />
+            <select id="typeFilter">
+                <option value="Todos" selected="@(ViewBag.TypeFilter == "Todos")">Todos</option>
+                <option value="Comprador" selected="@(ViewBag.TypeFilter == "Comprador")">Comprador</option>
+                <option value="Vendedor" selected="@(ViewBag.TypeFilter == "Vendedor")">Vendedor</option>
+            </select>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th><a href="#" class="sort-header" data-field="Id">ID</a></th>
+                    <th><a href="#" class="sort-header" data-field="Nome">Nome</a></th>
+                    <th><a href="#" class="sort-header" data-field="Email">Email</a></th>
+                    <th><a href="#" class="sort-header" data-field="TipoUser">Tipo</a></th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="utilizadorTableBody">
+                @foreach (var user in Model.Utilizadores)
+                {
+                    <tr>
+                        <td>@user.Id</td>
+                        <td>@user.Nome</td>
+                        <td>@user.Email</td>
+                        <td>@user.TipoUser</td>
+                        <td id="status@user.Id">@(user.Ativo ? "Ativo" : "Bloqueado")</td>
+                        <td>
+                            @if (user.Ativo)
+                            {
+                                <button class="btn-block" onclick="bloquearutilizador(@user.Id)">Bloquear</button>
+                            }
+                            else
+                            {
+                                <button class="btn-activate" onclick="ativarutilizador(@user.Id)">Ativar</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div id="pagination">
+            @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
+            {
+                <button class="page-btn @(i == ViewBag.CurrentPage ? "active" : "")" data-page="@i">@i</button>
+            }
+        </div>
+    </section>
+</main>
+
+@section Scripts {
+<script>
+    let sortField = "@ViewBag.SortField";
+    let sortOrder = "@ViewBag.SortOrder";
+    let currentPage = @ViewBag.CurrentPage;
+
+    function carregarUtilizadores(page = 1) {
+        const searchTerm = document.getElementById("searchInput").value;
+        const typeFilter = document.getElementById("typeFilter").value;
+
+        fetch(`@Url.Action("FiltrarUtilizadores", "Admin")?searchTerm=${searchTerm}&typeFilter=${typeFilter}&sortField=${sortField}&sortOrder=${sortOrder}&page=${page}`)
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.getElementById("utilizadorTableBody");
+                tbody.innerHTML = "";
+                data.users.forEach(user => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${user.id}</td>
+                            <td>${user.nome}</td>
+                            <td>${user.email}</td>
+                            <td>${user.tipoUser}</td>
+                            <td id="status${user.id}">${user.ativo ? "Ativo" : "Bloqueado"}</td>
+                            <td>
+                                ${user.ativo 
+                                    ? `<button class="btn-block" onclick="bloquearutilizador(${user.id})">Bloquear</button>`
+                                    : `<button class="btn-activate" onclick="ativarutilizador(${user.id})">Ativar</button>`
+                                }
+                            </td>
+                        </tr>`;
+                });
+
+                // Atualizar paginação
+                const pagination = document.getElementById("pagination");
+                pagination.innerHTML = "";
+                for(let i = 1; i <= data.totalPages; i++) {
+                    pagination.innerHTML += `<button class="page-btn ${i===page?'active':''}" data-page="${i}">${i}</button>`;
+                }
+
+                document.querySelectorAll(".page-btn").forEach(btn => {
+                    btn.addEventListener("click", e => {
+                        carregarUtilizadores(parseInt(btn.dataset.page));
+                    });
+                });
+            });
+    }
+
+    // Pesquisa dinâmica
+    document.getElementById("searchInput").addEventListener("input", () => carregarUtilizadores(1));
+    document.getElementById("typeFilter").addEventListener("change", () => carregarUtilizadores(1));
+
+    // Ordenação clicável
+    document.querySelectorAll(".sort-header").forEach(header => {
+        header.addEventListener("click", () => {
+            const field = header.dataset.field;
+            if(sortField === field) sortOrder = sortOrder === "asc" ? "desc" : "asc";
+            else { sortField = field; sortOrder = "asc"; }
+            carregarUtilizadores(1);
+        });
+    });
+
+    function bloquearutilizador(id) {
+        const motivo = prompt("Registar motivo do bloqueio:");
+        if (motivo) {
+            document.getElementById("status" + id).textContent = "Bloqueado";
+            alert("Utilizador bloqueado. Motivo: " + motivo);
+        }
+    }
+
+    function ativarutilizador(id) {
+        document.getElementById("status" + id).textContent = "Ativo";
+        alert("Utilizador ativado.");
+    }
+</script>
+}
+) (using AutoMarket.Models;
+using AutoMarket.Models.ViewModels;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+
+namespace AutoMarket.Controllers
+{
+    [Authorize(Roles = "Admin")]
+    public class AdminController : Controller
+    {
+        private readonly AppDbContext _context;
+        private const int PageSize = 20; // 20 utilizadores por página
+
+        public AdminController(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<IActionResult> GerirUtilizadores(
+            string? searchTerm,
+            string? typeFilter,
+            string? sortField,
+            string? sortOrder,
+            int page = 1)
+        {
+            var query = _context.Utilizadores.AsQueryable();
+
+            // Filtro por pesquisa
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                query = query.Where(u => u.Nome.Contains(searchTerm) || u.Email.Contains(searchTerm));
+            }
+
+            // Filtro por tipo
+            if (!string.IsNullOrEmpty(typeFilter) && typeFilter != "Todos")
+            {
+                query = query.Where(u => u.TipoUser == typeFilter);
+            }
+
+            // Ordenação
+            sortField ??= "Nome";      // campo padrão
+            sortOrder ??= "asc";       // ordem padrão
+
+            query = (sortField, sortOrder) switch
+            {
+                ("Nome", "asc") => query.OrderBy(u => u.Nome),
+                ("Nome", "desc") => query.OrderByDescending(u => u.Nome),
+                ("Email", "asc") => query.OrderBy(u => u.Email),
+                ("Email", "desc") => query.OrderByDescending(u => u.Email),
+                ("TipoUser", "asc") => query.OrderBy(u => u.TipoUser),
+                ("TipoUser", "desc") => query.OrderByDescending(u => u.TipoUser),
+                _ => query.OrderBy(u => u.Nome)
+            };
+
+            // Paginação
+            var totalUsers = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalUsers / (double)PageSize);
+
+            var users = await query
+                .Skip((page - 1) * PageSize)
+                .Take(PageSize)
+                .ToListAsync();
+
+            var model = new GerirUtilizadoresAdminViewModel
+            {
+                Utilizadores = users
+            };
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.SearchTerm = searchTerm;
+            ViewBag.TypeFilter = typeFilter;
+            ViewBag.SortField = sortField;
+            ViewBag.SortOrder = sortOrder;
+
+            return View(model);
+        }
+
+        [HttpGet]
+        public async Task<JsonResult> FiltrarUtilizadores(string? searchTerm, string? typeFilter, string? sortField, string? sortOrder, int page = 1)
+        {
+            var query = _context.Utilizadores.AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchTerm))
+                query = query.Where(u => u.Nome.Contains(searchTerm) || u.Email.Contains(searchTerm));
+
+            if (!string.IsNullOrEmpty(typeFilter) && typeFilter != "Todos")
+                query = query.Where(u => u.TipoUser == typeFilter);
+
+            sortField ??= "Nome";
+            sortOrder ??= "asc";
+
+            query = (sortField, sortOrder) switch
+            {
+                ("Nome", "asc") => query.OrderBy(u => u.Nome),
+                ("Nome", "desc") => query.OrderByDescending(u => u.Nome),
+                ("Email", "asc") => query.OrderBy(u => u.Email),
+                ("Email", "desc") => query.OrderByDescending(u => u.Email),
+                ("TipoUser", "asc") => query.OrderBy(u => u.TipoUser),
+                ("TipoUser", "desc") => query.OrderByDescending(u => u.TipoUser),
+                _ => query.OrderBy(u => u.Nome)
+            };
+
+            var totalUsers = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalUsers / (double)PageSize);
+
+            var users = await query
+                .Skip((page - 1) * PageSize)
+                .Take(PageSize)
+                .ToListAsync();
+
+            return Json(new { users, totalPages });
+        }
+    }
+}
+) (using AutoMarket.Models;
+
+public class Vendedor
+{
+    public int Id { get; set; }
+    public string? TipoVendedor { get; set; }
+    public string? Morada { get; set; }
+    public string? Contacto { get; set; }
+    public string? NIF { get; set; }
+    public string? DadosFaturacao { get; set; }
+
+    // FK
+    public int? AprovadoPorId { get; set; }
+    public Administrador? AprovadoPor { get; set; }
+    public int UtilizadorId { get; set; }
+    public Utilizador Utilizador { get; set; } = null!;
+
+    // Navegação
+    public ICollection<Anuncio>? Anuncios { get; set; }
+}
+) (using AutoMarket.Models;
+
+public class Administrador
+{
+    public int Id { get; set; }
+    public string? Permissoes { get; set; }
+
+    // FK
+    public int UtilizadorId { get; set; }
+    public Utilizador Utilizador { get; set; } = null!;
+
+    // Navegação
+    public ICollection<Vendedor>? VendedoresAprovados { get; set; }
+    public ICollection<HistoricoAdmin>? Historicos { get; set; }
+}
+)
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace AutoMarket.Models
+{
+    [Table("Utilizador")]
+    public class Utilizador
+    {
+        [Key]
+        [Column("id")]
+        public int Id { get; set; }
+
+        [Required(ErrorMessage = "O nome é obrigatório.")]
+        [MaxLength(100)]
+        [Column("Nome")]
+        public string Nome { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "O email é obrigatório.")]
+        [EmailAddress(ErrorMessage = "O email inserido não é válido.")]
+        [MaxLength(150)]
+        [Column("Email")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "O nome de utilizador é obrigatório.")]
+        [MaxLength(50)]
+        [Column("Username")]
+        public string Username { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "A password é obrigatória.")]
+        [MaxLength(200)]
+        [Column("Password")]
+        public string Password { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "O tipo de utilizador é obrigatório.")]
+        [MaxLength(20)]
+        [Column("Tipo_user")]
+        public string TipoUser { get; set; } = "Comprador"; // valor padrão
+
+        [Column("Data_registo")]
+        public DateTime DataRegisto { get; set; } = DateTime.Now;
+
+        [Column("Ativo")]
+        public bool Ativo { get; set; } = true;
+
+        [Column("EmailConfirmed")]
+        public bool EmailConfirmed { get; set; } = false; // padrão: false até ativar
+
+        [MaxLength(100)]
+        [Column("ActivationToken")]
+        public string? ActivationToken { get; set; }
+
+        [Column("ActivationTokenExpiry")]
+        public DateTime? ActivationTokenExpiry { get; set; }
+
+        [MaxLength(100)]
+        [Column("PasswordResetToken")]
+        public string? PasswordResetToken { get; set; }
+
+        [Column("PasswordResetTokenExpiry")]
+        public DateTime? PasswordResetTokenExpiry { get; set; }
+
+        public ICollection<Bloqueio>? Bloqueios { get; set; }
+
+        [MaxLength(250)]
+        [Column("FotoUrl")]
+        public string? FotoUrl { get; set; } = "/img/avatar.png";
+
+        [MaxLength(250)]
+        [Column("Morada")]
+        public string? Morada { get; set; }
+
+        [MaxLength(9)]
+        [Column("Contacto")]
+        public string? Contacto { get; set; }
+    }
+}
+)

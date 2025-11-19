@@ -1,0 +1,145 @@
+﻿@{
+    ViewData["Title"] = "Página Inicial";
+}
+
+<section class="hero">
+    <div class="hero-text">
+        <h1>O seu próximo carro <span>está aqui</span></h1>
+        <p>Compre e venda veículos usados com confiança. Milhares de anúncios verificados, negócios transparentes e suporte dedicado.</p>
+
+        <div class="hero-search">
+            <h3>Pesquisa Avançada</h3>
+            <form method="get" asp-action="SearchResults" asp-controller="Search" class="filters">
+                <select id="marca" name="marca">
+                    <option value="">Marca</option>
+                    @foreach (var marca in ViewBag.Marcas as List<string>)
+                    {
+                        <option value="@marca">@marca</option>
+                    }
+                </select>
+
+                <select id="modelo" name="modelo">
+                    <option value="">Modelo</option>
+                    @foreach (var modelo in ViewBag.Modelos as List<string>)
+                    {
+                        <option value="@modelo">@modelo</option>
+                    }
+                </select>
+
+                <select id="categoria" name="categoria">
+                    <option value="">Categoria</option>
+                    @foreach (var categoria in ViewBag.Categorias as List<string>)
+                    {
+                        <option value="@categoria">@categoria</option>
+                    }
+                </select>
+
+                <select id="ano" name="ano">
+                    <option value="">Ano</option>
+                    @foreach (var ano in ViewBag.Anos as List<int?>)
+                    {
+                        <option value="@ano">@ano</option>
+                    }
+                </select>
+
+                <select id="combustivel" name="combustivel">
+                    <option value="">Combustível</option>
+                    @foreach (var c in ViewBag.Combustiveis as List<string>)
+                    {
+                        <option value="@c">@c</option>
+                    }
+                </select>
+
+                <select id="caixa" name="caixa">
+                    <option value="">Caixa</option>
+                    @foreach (var c in ViewBag.Caixas as List<string>)
+                    {
+                        <option value="@c">@c</option>
+                    }
+                </select>
+
+                <select id="localizacao" name="localizacao">
+                    <option value="">Localização</option>
+                    @foreach (var l in ViewBag.Localizacoes as List<string>)
+                    {
+                        <option value="@l">@l</option>
+                    }
+                </select>
+
+                <button type="submit" class="btn-search">Pesquisar Veículos</button>
+            </form>
+        </div>
+
+        <!-- Hero Stats -->
+        <div class="hero-stats">
+            <div class="stat-item">
+                <span class="stat-number">12.500+</span>
+                <span class="stat-label">Veículos disponíveis</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">8.300+</span>
+                <span class="stat-label">Clientes satisfeitos</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">98%</span>
+                <span class="stat-label">Taxa de satisfação</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="hero-image">
+        <img src="/img/car_index.png"" alt="Carro em destaque" />
+    </div>
+</section>
+
+<section class="features">
+    <h2>Por que escolher o AutoMarket?</h2>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">🔍</div>
+            <h3>Anúncios Verificados</h3>
+            <p>Todos os veículos passam por verificação rigorosa para garantir qualidade e transparência.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">💰</div>
+            <h3>Melhores Preços</h3>
+            <p>Compare preços de milhares de veículos e encontre as melhores ofertas do mercado.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">🤝</div>
+            <h3>Suporte Dedicado</h3>
+            <p>Equipa especializada pronta para ajudar em todas as etapas da sua compra ou venda.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">📱</div>
+            <h3>Fácil e Rápido</h3>
+            <p>Plataforma intuitiva para publicar anúncios e encontrar o carro ideal em minutos.</p>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        const marcaSelect = document.getElementById('marca');
+        const modeloSelect = document.getElementById('modelo');
+
+        marcaSelect.addEventListener('change', function () {
+            const marca = this.value;
+            modeloSelect.innerHTML = '<option value="">Modelo</option>'; // limpa os modelos
+
+            if (marca) {
+                fetch(`/Search/GetModelosByMarca?marca=${encodeURIComponent(marca)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(modelo => {
+                            const option = document.createElement('option');
+                            option.value = modelo;
+                            option.text = modelo;
+                            modeloSelect.appendChild(option);
+                        });
+                    })
+                    .catch(err => console.error(err));
+            }
+        });
+    </script>
+}

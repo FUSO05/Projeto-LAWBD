@@ -1,0 +1,216 @@
+﻿@model AutoMarket.Models.Anuncio
+
+@{
+    ViewData["Title"] = $"{Model.Modelo?.Marca?.Nome ?? "Marca"} {Model.Modelo?.Nome ?? "Modelo"} - AutoMarket";
+}
+
+<link rel="stylesheet" href="~/css/resultsinformationcar.css" />
+
+<main class="detail-container">
+    <div class="car-content">
+        <div class="car-info-header">
+            <h1>@($"{Model.Modelo?.Marca?.Nome ?? "Marca"} {Model.Modelo?.Nome ?? "Modelo"}")</h1>
+            @{
+                string nomeLocal = string.IsNullOrEmpty(Model.Localizacao)
+                ? "Portugal"
+                : Model.Localizacao;
+            }
+            <div class="location">
+                Anunciado a @Model.DataCriacao.ToString("dd 'de' MMMM 'de' yyyy")
+            </div>
+        </div>
+
+        <div class="car-gallery">
+            <div class="car-gallery-main">
+                <img id="mainImage"
+                     src="@(Model.Imagens != null && Model.Imagens.Any() ? Model.Imagens.First().UrlImagem : "/images/default-car.jpg")"
+                     alt="@Model.Modelo?.Nome ?? " Carro"">
+            </div>
+            <div class="car-thumbnails">
+                @if (Model.Imagens != null && Model.Imagens.Any())
+                {
+                    foreach (var img in Model.Imagens)
+                    {
+                        <img src="@img.UrlImagem" onclick="changeImage(this)" class="@(img == Model.Imagens.First() ? "active" : "")" />
+                    }
+                }
+                else
+                {
+                    <img src="/images/default-car.jpg" class="active" />
+                }
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Descrição do Veículo</h2>
+            <div class="car-desc">
+                <p>@Html.Raw((Model.Descricao ?? "Sem descrição disponível").Replace(Environment.NewLine, "<br />"))</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="car-sidebar">
+        <div class="summary-box">
+            @if (User.Identity?.IsAuthenticated ?? false)
+            {
+                <span class="favorite-icon @(ViewBag.IsFavorito ? "favorited" : "")"
+                      onclick="toggleFavorite(this, @Model.Id)">
+                    &#10084;
+                </span>
+            }
+            else
+            {
+                <span class="favorite-icon disabled" onclick="openGenericPopup('Faça login para adicionar aos favoritos.')">&#10084;</span>
+            }
+            <div class="car-price">@($"{Model.Preco:C}")</div>
+            <ul class="specs-table">
+                <li><strong>Marca</strong> <span>@Model.Modelo?.Marca?.Nome</span></li>
+                <li><strong>Modelo</strong> <span>@Model.Modelo?.Nome</span></li>
+                <li><strong>Ano</strong> <span>@Model.Ano</span></li>
+                <li><strong>Quilometragem</strong> <span>@Model.Quilometragem?.ToString("N0") km</span></li>
+                <li><strong>Caixa</strong> <span>@Model.Caixa</span></li>
+                <li><strong>Combustível</strong> <span>@Model.Combustivel</span></li>
+                <li><strong>Cor</strong> <span>@Model.Cor</span></li>
+            </ul>
+        </div>
+
+        <div class="map-box">
+            <h4>Localização do Veículo</h4>
+            @if (!string.IsNullOrEmpty(Model.Localizacao))
+            {
+                <div class="map-embed">
+                    <iframe width="100%"
+                            height="250"
+                            style="border:0; border-radius: 10px;"
+                            loading="lazy"
+                            allowfullscreen
+                            referrerpolicy="no-referrer-when-downgrade"
+                            src="https://www.google.com/maps/embed/v1/place?key=@ViewBag.GoogleMapsApiKey&q=@Uri.EscapeDataString(nomeLocal)">
+                    </iframe>
+                </div>
+            }
+            else   
+            {
+                <span>Localização não disponível.</span>
+            }
+        </div>
+
+        <div class="contact-box">
+            <h4>Interessado neste veículo?</h4>
+            <button class="btn-contact" id="btnShowContact" onclick="showContact()">
+                📞 Mostrar Telefone e Contactar
+            </button>
+            <div id="contactInfo" class="contact-info" style="display:none;">
+                <p>
+                    <strong>Telefone:</strong> <span id="sellerPhone">@((Model.Vendedor?.Contacto) ?? "Não disponível")</span>
+                </p>
+                <a href="https://wa.me/@Model.Vendedor?.Contacto"
+                   target="_blank"
+                   class="btn-whatsapp">💬 Falar no WhatsApp</a>
+            </div>
+            <button class="btn-visit" onclick="agendarVisita()">
+                📅 Agendar Visita
+            </button>
+            <div class="seller-info">
+                Anunciante: <strong>@Model.Vendedor?.Utilizador.Nome</strong><br>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- POPUP LOGIN GENÉRICO -->
+<div id="genericLoginPopup" class="popup-overlay" style="display:none;">
+    <div class="popup-box">
+        <h3>⚠ Necessário Login</h3>
+        <p id="genericLoginMessage">Faça login para continuar.</p>
+
+        <div class="popup-buttons">
+            <a href="/Account/Login" class="btn-login-popup">Login</a>
+            <button onclick="closeGenericPopup()" class="btn-close-popup">Fechar</button>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        // Troca da imagem principal
+        function changeImage(element) {
+            document.getElementById('mainImage').src = element.src;
+            document.querySelectorAll('.car-thumbnails img').forEach(t => t.classList.remove('active'));
+            element.classList.add('active');
+        }
+
+        // Favoritos
+        function toggleFavorite(el, anuncioId) {
+            fetch('/Favoritos/Toggle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `anuncioId=${anuncioId}`,
+                credentials: 'include'
+            })
+            .then(async r => {
+                if (!r.ok) {
+                    const err = await r.json();
+                    console.error(err);
+
+                    if (r.status === 401) {
+                        openGenericPopup("Faça login para adicionar anúncios aos favoritos.");
+                        return;
+                    }
+
+                    alert("Erro ao atualizar favoritos: " + (err.error ?? "desconhecido"));
+                    el.classList.remove('favorited'); // Reverter estado visual
+                    return;
+                }
+                return r.json();
+            })
+            .then(data => {
+                if (data && data.success) {
+                    el.classList.toggle('favorited');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Erro ao atualizar favoritos.");
+                el.classList.remove('favorited');
+            });
+        }
+
+        // Agendar visita
+        function agendarVisita() {
+            var isAuthenticated = @((User.Identity?.IsAuthenticated ?? false).ToString().ToLower());
+
+            if (!isAuthenticated) {
+                openGenericPopup("Faça login para agendar uma visita a este veículo.");
+            } else {
+                window.location.href = '/Visits/BookVisit?id=@Model.Id';
+            }
+        }
+
+        // Mostrar/ocultar contato
+        function showContact() {
+            const btn = document.getElementById('btnShowContact');
+            const contact = document.getElementById('contactInfo');
+
+            if (contact.style.display === 'none') {
+                contact.style.display = 'block';
+                btn.innerText = '📱 Ocultar contacto';
+                btn.style.background = 'linear-gradient(135deg, #1a2a6c 0%, #2948b1 100%)';
+            } else {
+                contact.style.display = 'none';
+                btn.innerText = '📞 Mostrar Telefone e Contactar';
+            }
+        }
+
+        // Pop-up genérico
+        function openGenericPopup(message) {
+            document.getElementById("genericLoginMessage").innerText = message;
+            document.getElementById("genericLoginPopup").style.display = "flex";
+        }
+
+        function closeGenericPopup() {
+            document.getElementById("genericLoginPopup").style.display = "none";
+        }
+    </script>
+}

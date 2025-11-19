@@ -1,0 +1,88 @@
+﻿@using System.Security.Claims
+@model AutoMarket.Models.ViewModels.UtilizadorViewModel
+
+@{
+    ViewData["Title"] = "Área de Comprador - Definições";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="~/css/usermenu.css" />
+
+<main class="user-settings-container">
+    <aside class="sidebar">
+        <h3>Menu Comprador</h3>
+        <ul>
+            <li><a href="#">Minhas Reservas</a></li>
+            <li><a href="#">Compras</a></li>
+            <li><a href="#">Visitas</a></li>
+            <li><a asp-controller="Account" asp-action="UserMenuFavoritos">Favoritos</a></li>
+            <li><a asp-controller="Account" asp-action="UserMenu" class="active">Definições</a></li>
+        </ul>
+
+        @if (User.Identity!.IsAuthenticated && Model.TipoUser == "Comprador" && !Model.PedidoVendedorPendente)
+        {
+            <div class="seller-card">
+                <div class="seller-badge">NOVO</div>
+                <h4>Comece a Vender</h4>
+                <p>Publique os seus anúncios e alcance milhares de compradores</p>
+                <a asp-controller="Account" asp-action="RegisterVendedor" class="btn-seller">
+                    Criar Conta Vendedor
+                </a>
+            </div>
+        }
+    </aside>
+
+    <!-- Formulário com POST -->
+    <section class="settings-form">
+        <h2>Definições da Conta</h2>
+
+        <form asp-action="SalvarDefinicoes" method="post" enctype="multipart/form-data">
+            <div class="profile-upload">
+                <img id="profilePreview" src="@Model.FotolUrl" alt="Foto de Perfil">
+                <label for="profileImage" class="upload-label">Alterar Foto</label>
+                <input type="file" id="profileImage" name="ProfileImage" accept="image/*">
+            </div>
+
+            <div>
+                <label for="email">Email</label>
+                <input type="email" id="email" name="Email" value="@Model.Email">
+            </div>
+
+            <div>
+                <label for="morada">Morada</label>
+                <input type="text" id="morada" name="Morada" value="@Model.Morada">
+            </div>
+
+            <div>
+                <label for="contacto">Contacto</label>
+                <input type="tel" id="contacto" name="Contacto" value="@Model.Contacto">
+            </div>
+
+            <div>
+                <label for="password">Password</label>
+                <input type="password" id="password" name="Password" placeholder="********">
+            </div>
+
+            <button type="submit" class="btn-save">Salvar Alterações</button>
+        </form>
+    </section>
+</main>
+
+@section Scripts {
+    <script>
+        // Preview instantâneo da foto
+        const profileInput = document.getElementById('profileImage');
+        const profilePreview = document.getElementById('profilePreview');
+
+        profileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    profilePreview.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+}

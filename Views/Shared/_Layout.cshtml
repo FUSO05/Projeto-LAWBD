@@ -1,0 +1,130 @@
+﻿@*
+    Views/Shared/_Layout.cshtml
+*@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - @(User.IsInRole("Admin") ? "AutoMarketAdmin" : "AutoMarket")</title>
+
+    <link rel="stylesheet" href="~/css/site.css" />
+    @RenderSection("Styles", required: false)
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-Bx8zjXlfI9/..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body class="@(User.IsInRole("Admin") ? "admin" : "")">
+    <header>
+        <a asp-controller="Home" asp-action="Index" class="logo">
+            @(User.IsInRole("Admin") ? "AutoMarketAdmin" : "AutoMarket")
+        </a>
+
+        <nav>
+            <a asp-controller="Search" asp-action="SearchResults">Comprar</a>
+            <a asp-controller="Home" asp-action="About">Sobre</a>
+        </nav>
+
+        <div class="header-actions">
+            @if (User.Identity.IsAuthenticated)
+            {
+                <div class="user-menu">
+                    <img src="@(User.FindFirst("FotoUrl")?.Value ?? "/img/avatar.png")"
+                         alt="Foto do usuário"
+                         class="user-avatar"
+                         onclick="toggleDropdown()" />
+
+                    <div id="dropdown" class="dropdown-content">
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a asp-controller="Admin" asp-action="GerirUtilizadores">
+                                <i class="fas fa-crown"></i>
+                                <span>Painel Admin</span>
+                            </a>
+                            <div class="dropdown-divider"></div>
+                        }
+                        <a asp-controller="Account" asp-action="UserMenu">
+                            <i class="fas fa-user-cog"></i>
+                            <span>Definições</span>
+                        </a>
+                        <form method="post" asp-controller="Account" asp-action="Logout">
+                            <button type="submit" class="logout-btn">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Logout</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- Login e Registar -->
+                <a asp-controller="Account" asp-action="Login" class="btn-login">Login</a>
+                <a asp-controller="Account" asp-action="Register" class="btn-register">Registar</a>
+            }
+        </div>
+    </header>
+
+    <main role="main">
+        @RenderBody()
+    </main>
+
+    <footer class="footer">
+        <div class="footer-top">
+            <div class="footer-columns">
+                <div class="footer-col">
+                    <h4>AutoMarket</h4>
+                    <p>Marketplace premium de veículos usados em Portugal.</p>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Ajuda & Suporte</h4>
+                    <ul>
+                        <li><a asp-controller="Home" asp-action="Contacts">Contacte-nos</a></li>
+                        <li><a asp-controller="Home" asp-action="FAQ">Perguntas Frequentes</a></li>
+                        <li><a asp-controller="Home" asp-action="Guia">Guia de Utilização</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a asp-controller="Home" asp-action="Terms">Termos de Utilização</a></li>
+                        <li><a asp-controller="Home" asp-action="Privacy">Política de Privacidade</a></li>
+                        <li><a asp-controller="Home" asp-action="Cookies">Política de Cookies</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Siga-nos</h4>
+                    <ul class="socials">
+                        <li><a href="https://www.facebook.com/salome.batista.161">Facebook</a></li>
+                        <li><a href="https://www.instagram.com/_salomecb/">Instagram</a></li>
+                        <li><a href="#">LinkedIn</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>© 2025 AutoMarket. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    @RenderSection("Scripts", required: false)
+    <script>
+        function toggleDropdown() {
+            const dropdown = document.getElementById('dropdown');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+
+        // Fechar dropdown se clicar fora
+        window.onclick = function(event) {
+            if (!event.target.matches('.user-avatar')) {
+                const dropdown = document.getElementById('dropdown');
+                if (dropdown) dropdown.style.display = 'none';
+            }
+        }
+    </script>
+
+</body>
+</html>

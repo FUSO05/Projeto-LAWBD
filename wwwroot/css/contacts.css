@@ -1,0 +1,211 @@
+﻿body {
+    font-family: "Poppins", Arial, sans-serif;
+    background-image: url('../img/final_back.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    color: #1a1a1a;
+}
+
+/* CONTAINER PRINCIPAL */
+.contact-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 100px 20px 80px;
+    min-height: 80vh;
+}
+
+.contact-content {
+    background-color: rgba(255, 255, 255, 0.96);
+    max-width: 950px;
+    width: 100%;
+    padding: 50px 45px;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+
+    /* TÍTULOS */
+    .contact-content h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1a2a6c;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+
+    .contact-content p {
+        text-align: center;
+        color: #444;
+        font-size: 1rem;
+        margin-bottom: 40px;
+    }
+
+/* INFO CARDS */
+.contact-info {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 25px;
+    margin-bottom: 50px;
+}
+
+.contact-card {
+    flex: 1 1 280px;
+    background: #f8f9ff;
+    border: 1px solid #e4e6f3;
+    border-radius: 15px;
+    padding: 25px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(26, 42, 108, 0.05);
+    transition: all 0.3s ease;
+}
+
+    .contact-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(26, 42, 108, 0.1);
+    }
+
+    .contact-card h3 {
+        color: #2948b1;
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+    }
+
+    .contact-card p {
+        color: #555;
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    .contact-card a {
+        color: #2948b1;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+        .contact-card a:hover {
+            text-decoration: underline;
+        }
+
+/* FORMULÁRIO */
+.contact-form-container {
+    margin-top: 40px;
+}
+
+    .contact-form-container h2 {
+        text-align: center;
+        color: #1a2a6c;
+        font-size: 1.6rem;
+        margin-bottom: 30px;
+        font-weight: 700;
+    }
+
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+    .form-group label {
+        font-weight: 600;
+        color: #1a2a6c;
+        margin-bottom: 8px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 15px;
+        font-family: "Poppins", Arial, sans-serif;
+        transition: all 0.3s ease;
+    }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #1a2a6c;
+            box-shadow: 0 4px 12px rgba(26, 42, 108, 0.1);
+        }
+
+/* BOTÃO MODERNO */
+.btn-submit {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #1a2a6c 0%, #3b4cca 50%, #5f67e0 100%);
+    color: #fff;
+    font-weight: 600;
+    font-size: 16px;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    align-self: center;
+    width: 230px;
+    box-shadow: 0 5px 20px rgba(26, 42, 108, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+    .btn-submit span {
+        position: relative;
+        z-index: 2;
+    }
+
+    .btn-submit::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, rgba(255,255,255,0.3), transparent);
+        transition: all 0.4s ease;
+    }
+
+    .btn-submit:hover::before {
+        left: 100%;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(26, 42, 108, 0.45);
+    }
+
+/* MAPA */
+.map-section {
+    margin-top: 60px;
+}
+
+    .map-section h2 {
+        text-align: center;
+        color: #1a2a6c;
+        margin-bottom: 20px;
+        font-size: 1.6rem;
+        font-weight: 700;
+    }
+
+/* RESPONSIVO */
+@media (max-width: 768px) {
+    .contact-content {
+        padding: 35px 25px;
+    }
+
+    .contact-info {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .btn-submit {
+        width: 100%;
+    }
+}

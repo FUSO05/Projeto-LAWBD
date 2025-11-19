@@ -1,0 +1,59 @@
+﻿@model AutoMarket.Models.ViewModels.FavoritosViewModel
+
+
+@{
+    ViewData["Title"] = "Área de Comprador - Favoritos";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/usermenufavoritos.css" />
+}
+
+<main class="favorites-container">
+    <aside class="sidebar">
+        <h3>Menu Comprador</h3>
+        <ul>
+            <li><a href="#">Minhas Reservas</a></li>
+            <li><a href="#">Compras</a></li>
+            <li><a href="#">Visitas</a></li>
+            <li><a asp-controller="Account" asp-action="UserMenuFavoritos" class="active">Favoritos</a></li>
+            <li><a asp-controller="Account" asp-action="UserMenu">Definições</a></li>
+        </ul>
+    </aside>
+     
+    <section class="favorites-list">
+        @if (Model == null || Model.Favoritos == null || !Model.Favoritos.Any())
+        {
+            <p class="no-favorites">Ainda não adicionou nenhum veículo aos favoritos ❤️</p>
+        }
+        else
+        {
+            @foreach (var a in Model.Favoritos)
+            {
+                <article class="favorite-card">
+                    <img src="@(a.Imagens?.FirstOrDefault()?.UrlImagem ?? "/images/default-car.jpg")"
+                         alt="@a.Modelo?.Nome" class="favorite-image" />
+
+                    <div class="favorite-details">
+                        <div class="favorite-header">
+                            <h2 class="favorite-title">@($"{a.Modelo?.Marca?.Nome} {a.Modelo?.Nome}")</h2>
+                            <span class="favorite-price">@($"{a.Preco:C}")</span>
+                        </div>
+
+                        <div class="favorite-specs">
+                            <span>@a.Ano</span>
+                            <span>@($"{a.Quilometragem:N0} km")</span>
+                            <span>@a.Combustivel</span>
+                            <span>@a.Caixa</span>
+                            <span>@(a.Localizacao ?? "Local não disponível")</span>
+                        </div>
+
+                        <a asp-controller="Search" asp-action="ResultsInformationCar" asp-route-id="@a.Id" class="btn-action">
+                            Ver Detalhes
+                        </a>
+                    </div>
+                </article>
+            }
+        }
+    </section>
+</main>

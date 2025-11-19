@@ -1,0 +1,16 @@
+﻿@{
+    ViewData["Title"] = "Página Não Encontrada (404)";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/error.css" />
+}
+
+<main class="error-page">
+    <div class="error-box">
+        <h1>404</h1>
+        <h2>Ops! Página não encontrada.</h2>
+        <p>A página que procura pode ter sido removida ou nunca existiu.</p>
+        <a asp-controller="Home" asp-action="Index" class="btn-back">Voltar à Página Inicial</a>
+    </div>
+</main>

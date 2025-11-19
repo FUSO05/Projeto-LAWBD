@@ -1,0 +1,96 @@
+﻿body {
+    font-family: "Poppins", Arial, sans-serif;
+    background-image: url('../img/final_back.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    color: #1a1a1a;
+}
+
+.privacy-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 80vh;
+    padding: 80px 20px;
+    background: rgba(255, 255, 255, 0.85);
+}
+
+.privacy-content {
+    background-color: rgba(255, 255, 255, 0.95);
+    max-width: 900px;
+    width: 100%;
+    padding: 50px;
+    border-radius: 20px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(10px);
+}
+
+    /* Cabeçalho principal */
+    .privacy-content h1 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #1a2a6c;
+        text-align: center;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #2948b1;
+        padding-bottom: 10px;
+    }
+
+/* Subtítulos */
+.privacy-section h2 {
+    font-size: 1.3rem;
+    color: #1a2a6c;
+    margin-top: 35px;
+    margin-bottom: 12px;
+}
+
+/* Texto */
+.privacy-content p {
+    line-height: 1.7;
+    font-size: 1rem;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.privacy-content .intro {
+    font-size: 1.1rem;
+    color: #444;
+    margin-bottom: 25px;
+}
+
+/* Links */
+.privacy-content a {
+    color: #2948b1;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+    .privacy-content a:hover {
+        color: #1a2a6c;
+        text-decoration: underline;
+    }
+
+/* Nota final */
+.final-note {
+    margin-top: 40px;
+    text-align: center;
+    font-style: italic;
+    color: #555;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .privacy-content {
+        padding: 30px 20px;
+    }
+
+        .privacy-content h1 {
+            font-size: 1.8rem;
+        }
+
+    .privacy-section h2 {
+        font-size: 1.1rem;
+    }
+}

@@ -1,0 +1,203 @@
+﻿@model IEnumerable<AutoMarket.Models.Anuncio>
+
+@{
+    ViewData["Title"] = "Resultados da Pesquisa - AutoMarket";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/searchresults.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+}
+
+<main class="results-container">
+    <aside class="filters-sidebar">
+        <form method="get" asp-action="SearchResults" asp-controller="Search">
+            <div class="filter-group">
+                <label for="marca">Marca</label>
+                <select id="marca" name="marca">
+                    <option value="">Todas</option>
+                    @foreach (var marca in ViewBag.Marcas as List<string>)
+                    {
+                        <option value="@marca">@marca</option>
+                    }
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="modelo">Modelo</label>
+                <select id="modelo" name="modelo">
+                    <option value="">Todos</option>
+                    @foreach (var modelo in ViewBag.Modelos as List<string>)
+                    {
+                        <option value="@modelo">@modelo</option>
+                    }
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="categoria">Categoria</label>
+                <select id="categoria" name="categoria">
+                    <option value="">Todas</option>
+                    @foreach (var categoria in ViewBag.Categorias as List<string>)
+                    {
+                        <option value="@categoria">@categoria</option>
+                    }
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="ano">Ano</label>
+                <select id="ano" name="ano">
+                    <option value="">Todos</option>
+                    @foreach (var ano in ViewBag.Anos as List<int?>)
+                    {
+                        <option value="@ano">@ano</option>
+                    }
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="combustivel">Combustível</label>
+                <select id="combustivel" name="combustivel">
+                    <option value="">Todos</option>
+                    @foreach (var c in ViewBag.Combustiveis as List<string>)
+                    {
+                        <option value="@c">@c</option>
+                    }
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="caixa">Caixa</label>
+                <select id="caixa" name="caixa">
+                    <option value="">Todos</option>
+                    @foreach (var c in ViewBag.Caixas as List<string>)
+                    {
+                        <option value="@c">@c</option>
+                    }
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="localizacao">Localização</label>
+                <select id="localizacao" name="localizacao">
+                    <option value="">Todas</option>
+                    @foreach (var l in ViewBag.Localizacoes as List<string>)
+                    {
+                        <option value="@l">@l</option>
+                    }
+                </select>
+            </div>
+
+            <button type="submit" class="btn-filter">Aplicar Filtros</button>
+        </form>
+    </aside>
+
+    <section class="listings">
+        <div class="sort-bar">
+            <label for="sort">Ordenar por:</label>
+            <select id="sort" name="sort">
+                <option value="recentes">Mais recentes</option>
+                <option value="precoAsc">Preço (menor para maior)</option>
+                <option value="precoDesc">Preço (maior para menor)</option>
+                <option value="quilometragem">Quilometragem</option>
+            </select>
+        </div>
+
+        @foreach (var anuncio in Model)
+        {
+            <article class="car-card" onclick="window.location.href='@Url.Action("ResultsInformationCar", "Search", new { id = anuncio.Id })'">
+                <img src="@(anuncio.Imagens?.FirstOrDefault()?.UrlImagem)" class="car-image" alt="@($"{anuncio.Modelo.Marca.Nome} {anuncio.Modelo.Nome}")" />
+                <div class="car-details">
+                    <div class="car-header">
+                        <h2 class="car-title">@($"{anuncio.Modelo.Marca.Nome} {anuncio.Modelo.Nome}")</h2>
+                        <span class="car-price">@($"{anuncio.Preco:C}")</span>
+                    </div>
+                    <div class="car-specs">
+                        <span>@anuncio.Ano</span>
+                        <span>@(anuncio.Quilometragem?.ToString("N0") ?? "-") km</span>
+                        <span>@anuncio.Combustivel</span>
+                        <span>@anuncio.Caixa</span>
+                        <span>@anuncio.Localizacao</span>
+                    </div>
+                    <p class="car-desc">@anuncio.Descricao</p>
+                </div>
+            </article>
+        }
+    </section>
+</main>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.favorite-icon').forEach(icon => {
+            icon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                icon.classList.toggle('favorited');
+            });
+        });
+
+        // Filtro dependente marca → modelo
+        const marcaSelect = document.getElementById('marca');
+        const modeloSelect = document.getElementById('modelo');
+
+        marcaSelect.addEventListener('change', function () {
+            const marca = this.value;
+            modeloSelect.innerHTML = '<option value="">Todos</option>'; // limpa os modelos
+
+            if (marca) {
+                fetch(`/Search/GetModelosByMarca?marca=${encodeURIComponent(marca)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(modelo => {
+                            const option = document.createElement('option');
+                            option.value = modelo;
+                            option.text = modelo;
+                            modeloSelect.appendChild(option);
+                        });
+                    })
+                    .catch(err => console.error(err));
+            }
+        });
+
+                function toggleFavorite(el, anuncioId) {
+            fetch('/Favoritos/Toggle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `anuncioId=${anuncioId}`,
+                credentials: 'include'
+            })
+            .then(async r => {
+                if (!r.ok) {
+                    const err = await r.json();
+                    console.error(err);
+
+                    if (r.status === 401) {
+                        alert("Por favor, faça login para adicionar favoritos.");
+                        window.location.href = '/Home/Login';
+                        return;
+                    }
+
+                    alert("Erro ao atualizar favoritos: " + (err.error ?? "desconhecido"));
+                    el.classList.remove('favorited');
+                    return;
+                }
+                return r.json();
+            })
+            .then(data => {
+                if (data && data.success) {
+                    el.classList.toggle('favorited');
+
+                    alert(el.classList.contains('favorited')
+                        ? "Veículo adicionado aos favoritos!"
+                        : "Veículo removido dos favoritos!");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Erro ao atualizar favoritos.");
+                el.classList.remove('favorited');
+            });
+        }
+
+    </script>
+}

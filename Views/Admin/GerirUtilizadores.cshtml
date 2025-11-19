@@ -1,0 +1,298 @@
+﻿@model AutoMarket.Models.ViewModels.GerirUtilizadoresAdminViewModel
+@Html.AntiForgeryToken()
+
+@{
+    ViewData["Title"] = "Admin Backoffice | AutoMarket";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="~/css/admin.css" />
+
+<main>
+    <aside class="sidebar">
+        <h3>Menu Admin</h3>
+        <ul>
+            <li><a href="@Url.Action("GerirPedidosVendedor", "Admin")" class="@(ViewBag.IsPedidosVendedorPage ? "active" : "")">Pedidos Vendedor</a></li>
+            <li><a href="@Url.Action("GerirUtilizadores", "Admin")" class="@(!ViewBag.IsPedidosVendedorPage ? "active" : "")">Gerir Utilizadores</a></li>
+            <li><a href="#">Estatísticas</a></li>
+            <li><a href="#">Histórico</a></li>
+            <li><a href="#">Configurações</a></li>
+        </ul>
+    </aside>
+
+    <section class="admin-list">
+        <h2>@(ViewBag.IsPedidosVendedorPage ? "Pedidos de Registo de Vendedor" : "Lista de Utilizadores")</h2>
+
+        @if (!ViewBag.IsPedidosVendedorPage)
+        {
+            <div class="admin-filters">
+                <input type="text" id="searchInput" placeholder="Pesquisar utilizador..." value="@ViewBag.SearchTerm" />
+                <select id="typeFilter">
+                    <option value="Todos" selected="@(ViewBag.TypeFilter == "Todos")">Todos</option>
+                    <option value="Comprador" selected="@(ViewBag.TypeFilter == "Comprador")">Comprador</option>
+                    <option value="Vendedor" selected="@(ViewBag.TypeFilter == "Vendedor")">Vendedor</option>
+                </select>
+            </div>
+        }
+        else
+        {
+            <div class="admin-filters">
+                <input type="text" id="searchInput" placeholder="Pesquisar pedido..." value="@ViewBag.SearchTerm" />
+            </div>
+        }
+
+        <table>
+            <thead>
+                <tr>
+                    <th><a href="#" class="sort-header" data-field="Id">ID</a></th>
+                    <th><a href="#" class="sort-header" data-field="Nome">Nome</a></th>
+                    <th><a href="#" class="sort-header" data-field="Email">Email</a></th>
+                    <th><a href="#" class="sort-header" data-field="TipoUser">Tipo</a></th>
+                    @if (!ViewBag.IsPedidosVendedorPage)
+                    {
+                        <th>Status</th>
+                    }
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="utilizadorTableBody">
+                @foreach (var user in Model.Utilizadores)
+                {
+                    <tr id="row-@user.Id">
+                        <td>@user.Id</td>
+                        <td>@user.Nome</td>
+                        <td>@user.Email</td>
+                        <td>@user.TipoUser</td>
+                        @if (!ViewBag.IsPedidosVendedorPage)
+                        {
+                            <td id="status@user.Id">@(user.Ativo ? "Ativo" : "Bloqueado")</td>
+                            <td>
+                                @if (user.Ativo)
+                                {
+                                    <button class="btn-block" onclick="bloquearutilizador(@user.Id)">Bloquear</button>
+                                }
+                                else
+                                {
+                                    <button class="btn-activate" onclick="ativarutilizador(@user.Id)">Ativar</button>
+                                }
+                            </td>
+                        }
+                        else
+                        {
+                            <td id="actions@user.Id">
+                                <button class="btn-activate" onclick="confirmarVendedor(@user.Id, true)">Aceitar</button>
+                                <button class="btn-block" onclick="confirmarVendedor(@user.Id, false)">Rejeitar</button>
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div id="pagination">
+            @for (int i = 1; i <= (int)ViewBag.TotalPages; i++)
+            {
+                <button class="page-btn @(i == ViewBag.CurrentPage ? "active" : "")" data-page="@i">@i</button>
+            }
+        </div>
+    </section>
+</main>
+
+<!-- Popup de Confirmação -->
+<div id="confirmPopup" class="popup-overlay" style="display:none;">
+    <div class="popup-box confirm-popup">
+        <h3 id="confirmTitle">Confirmar Ação</h3>
+        <p id="confirmMessage">Tem certeza?</p>
+        <div class="popup-buttons">
+            <button class="btn-cancel-popup" onclick="closeConfirmPopup()">Cancelar</button>
+            <button class="btn-confirm-popup" id="confirmBtn">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Popup de Resultado -->
+<div id="resultPopup" class="popup-overlay" style="display:none;">
+    <div class="popup-box" id="resultPopupBox">
+        <h3 id="resultTitle">Título</h3>
+        <p id="resultMessage">Mensagem</p>
+        <div class="popup-buttons">
+            <button class="btn-close-popup" onclick="closeResultPopup()">OK</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let sortField = "@ViewBag.SortField";
+        let sortOrder = "@ViewBag.SortOrder";
+        let currentPage = @ViewBag.CurrentPage;
+        const isPedidosVendedor = @(ViewBag.IsPedidosVendedorPage ? "true" : "false");
+
+        function carregarUtilizadores(page = 1) {
+            const searchTerm = document.getElementById("searchInput").value;
+            const typeFilter = isPedidosVendedor ? "" : document.getElementById("typeFilter")?.value || "";
+
+            const actionUrl = isPedidosVendedor
+                ? "@Url.Action("GerirPedidosVendedor", "Admin")"
+                : "@Url.Action("FiltrarUtilizadores", "Admin")";
+
+            if(isPedidosVendedor) {
+                window.location.href = `${actionUrl}?searchTerm=${searchTerm}&page=${page}`;
+                return;
+            }
+
+            fetch(`@Url.Action("FiltrarUtilizadores", "Admin")?searchTerm=${searchTerm}&typeFilter=${typeFilter}&sortField=${sortField}&sortOrder=${sortOrder}&page=${page}`)
+                .then(res => res.json())
+                .then(data => {
+                    const tbody = document.getElementById("utilizadorTableBody");
+                    tbody.innerHTML = "";
+                    data.users.forEach(user => {
+                        tbody.innerHTML += `
+                            <tr id="row-${user.id}">
+                                <td>${user.id}</td>
+                                <td>${user.nome}</td>
+                                <td>${user.email}</td>
+                                <td>${user.tipoUser}</td>
+                                <td id="status${user.id}">${user.ativo ? "Ativo" : "Bloqueado"}</td>
+                                <td>
+                                    ${user.ativo
+                                        ? `<button class="btn-block" onclick="bloquearutilizador(${user.id})">Bloquear</button>`
+                                        : `<button class="btn-activate" onclick="ativarutilizador(${user.id})">Ativar</button>`
+                                    }
+                                </td>
+                            </tr>`;
+                    });
+
+                    const pagination = document.getElementById("pagination");
+                    pagination.innerHTML = "";
+                    for(let i = 1; i <= data.totalPages; i++) {
+                        pagination.innerHTML += `<button class="page-btn ${i===page?'active':''}" data-page="${i}">${i}</button>`;
+                    }
+
+                    document.querySelectorAll(".page-btn").forEach(btn => {
+                        btn.addEventListener("click", e => {
+                            carregarUtilizadores(parseInt(btn.dataset.page));
+                        });
+                    });
+                });
+        }
+
+        document.getElementById("searchInput").addEventListener("input", () => carregarUtilizadores(1));
+
+        if (!isPedidosVendedor) {
+            document.getElementById("typeFilter").addEventListener("change", () => carregarUtilizadores(1));
+        }
+
+        document.querySelectorAll(".sort-header").forEach(header => {
+            header.addEventListener("click", () => {
+                const field = header.dataset.field;
+                if(sortField === field) sortOrder = sortOrder === "asc" ? "desc" : "asc";
+                else { sortField = field; sortOrder = "asc"; }
+                carregarUtilizadores(1);
+            });
+        });
+
+        function bloquearutilizador(id) {
+            const motivo = prompt("Registar motivo do bloqueio:");
+            if (motivo) {
+                document.getElementById("status" + id).textContent = "Bloqueado";
+                alert("Utilizador bloqueado. Motivo: " + motivo);
+            }
+        }
+
+        function ativarutilizador(id) {
+            document.getElementById("status" + id).textContent = "Ativo";
+            alert("Utilizador ativado.");
+        }
+
+        // Popup de Confirmação
+        function showConfirmPopup(title, message, onConfirm) {
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').textContent = message;
+            document.getElementById('confirmPopup').style.display = 'flex';
+
+            document.getElementById('confirmBtn').onclick = () => {
+                closeConfirmPopup();
+                onConfirm();
+            };
+        }
+
+        function closeConfirmPopup() {
+            document.getElementById('confirmPopup').style.display = 'none';
+        }
+
+        // Popup de Resultado
+        function showResultPopup(title, message, type = "info") {
+            const popup = document.getElementById('resultPopup');
+            const popupBox = document.getElementById('resultPopupBox');
+
+            popupBox.classList.remove('aceite', 'rejeitado');
+            if(type === "aceite") popupBox.classList.add('aceite');
+            if(type === "rejeitado") popupBox.classList.add('rejeitado');
+
+            document.getElementById('resultTitle').textContent = title;
+            document.getElementById('resultMessage').textContent = message;
+            popup.style.display = 'flex';
+        }
+
+        function closeResultPopup() {
+            document.getElementById('resultPopup').style.display = 'none';
+        }
+
+        // Função para confirmar/rejeitar vendedor
+        function confirmarVendedor(userId, aprovar) {
+            const mensagem = aprovar
+                ? "Tem certeza que deseja ACEITAR este pedido de vendedor?"
+                : "Tem certeza que deseja REJEITAR este pedido de vendedor?";
+
+            const titulo = aprovar ? "Aceitar Pedido" : "Rejeitar Pedido";
+
+            showConfirmPopup(titulo, mensagem, () => {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+                fetch('@Url.Action("ConfirmarVendedor", "Admin")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({ userId: userId, aprovar: aprovar })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        // Remove a linha da tabela
+                        const row = document.getElementById('row-' + userId);
+                        if(row) {
+                            row.style.transition = 'opacity 0.3s ease';
+                            row.style.opacity = '0';
+                            setTimeout(() => row.remove(), 300);
+                        }
+
+                        showResultPopup(
+                            aprovar ? "Pedido Aceite" : "Pedido Rejeitado",
+                            data.message,
+                            aprovar ? "aceite" : "rejeitado"
+                        );
+
+                    } else {
+                        showResultPopup("Erro", data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    showResultPopup("Erro", "Ocorreu um erro ao processar o pedido.");
+                });
+            });
+        }
+
+        // Fechar popups ao clicar fora
+        document.getElementById('confirmPopup').addEventListener('click', function(e) {
+            if (e.target === this) closeConfirmPopup();
+        });
+
+        document.getElementById('resultPopup').addEventListener('click', function(e) {
+            if (e.target === this) closeResultPopup();
+        });
+    </script>
+}

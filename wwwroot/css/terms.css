@@ -1,0 +1,92 @@
+﻿body {
+    background: url('../img/final_back.jpg') center/cover no-repeat;
+    font-family: 'Poppins', sans-serif;
+    color: #1a1a1a;
+}
+
+.terms-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 80vh;
+    padding: 100px 20px 80px;
+}
+
+.terms-content {
+    background-color: rgba(255, 255, 255, 0.96);
+    max-width: 950px;
+    width: 100%;
+    padding: 50px 45px;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+
+    /* ==============================
+   TÍTULOS E SECÇÕES
+================================= */
+
+    .terms-content h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 25px;
+        color: #1a2a6c;
+        text-align: center;
+    }
+
+.terms-section h2 {
+    font-size: 1.3rem;
+    color: #2948b1;
+    margin-top: 30px;
+    margin-bottom: 10px;
+}
+
+.terms-content p {
+    line-height: 1.7;
+    font-size: 1rem;
+    margin-bottom: 15px;
+    color: #444;
+}
+
+.terms-content ul {
+    margin-left: 25px;
+    margin-bottom: 15px;
+}
+
+.terms-content li {
+    margin-bottom: 8px;
+    line-height: 1.6;
+}
+
+/* ==============================
+   LINKS E TEXTO FINAL
+================================= */
+
+.terms-content a {
+    color: #2948b1;
+    text-decoration: none;
+}
+
+    .terms-content a:hover {
+        text-decoration: underline;
+    }
+
+.final-note {
+    margin-top: 40px;
+    text-align: center;
+    font-style: italic;
+    color: #666;
+}
+
+/* ==============================
+   RESPONSIVIDADE
+================================= */
+
+@media (max-width: 768px) {
+    .terms-content {
+        padding: 35px 25px;
+    }
+
+        .terms-content h1 {
+            font-size: 1.6rem;
+        }
+}

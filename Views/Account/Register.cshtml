@@ -1,0 +1,62 @@
+﻿@{
+    ViewData["Title"] = "Registar Conta - AutoMarket";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/register.css" />
+}
+
+<main>
+    <div class="register-box">
+        <h2>Crie a sua Conta</h2>
+        <p class="subtitle">Junte-se ao marketplace premium de carros usados.</p>
+
+        <form asp-controller="Account" asp-action="Register" method="post">
+            <div class="utilizador-type-selection">
+                <label class="utilizador-type-card selected" for="radio-comprador">
+                    <input type="radio" id="radio-comprador" name="tipo" value="comprador" checked>
+                    <p>Comprador</p>
+                    <small>Procure o seu próximo carro.</small>
+                </label>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="nome">Nome Completo</label>
+                    <input type="text" id="nome" name="Nome" placeholder="Insira o seu nome" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="Email" placeholder="exemplo@dominio.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="Password" placeholder="Mínimo 8 caracteres" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="contacto">Contacto</label>
+                    <input type="tel" id="contacto" name="Contacto" placeholder="Telefone ou telemóvel" required>
+                </div>
+
+                <div class="full-width form-group">
+                    <label for="morada">Morada (Rua, Cidade, Código Postal)</label>
+                    <input type="text" id="morada" name="Morada" placeholder="Rua, Cidade e Código Postal">
+                </div>
+            </div>
+
+            <div class="terms-group">
+                <input type="checkbox" id="terms" required>
+                <label for="terms" style="font-weight: 400; color: #555;">
+                    Li e aceito os <a href="#">Termos de Utilização</a> e a <a href="#">Política de Privacidade</a>.
+                </label>
+            </div>
+
+            <button type="submit" class="btn-submit">Criar Minha Conta</button>
+        </form>
+    </div>
+</main>

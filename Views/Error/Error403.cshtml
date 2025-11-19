@@ -1,0 +1,17 @@
+﻿@{
+    ViewData["Title"] = "Acesso Negado (403)";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/error.css" />
+}
+
+
+<main class="error-page">
+    <div class="error-box">
+        <h1>403</h1>
+        <h2>Acesso Negado</h2>
+        <p>Não tem permissão para aceder a esta página.</p>
+        <a asp-controller="Home" asp-action="Index" class="btn-back">Voltar à Página Inicial</a>
+    </div>
+</main>

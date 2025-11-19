@@ -1,0 +1,104 @@
+﻿@model AutoMarket.Models.ViewModels.RegisterVendedorViewModel
+@{
+    ViewData["Title"] = "Pedido para Vender";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="~/css/register.css" />
+
+<main>
+    <div class="register-box">
+        <h2>Comece a Vender na AutoMarket</h2>
+        <p class="subtitle">Submeta o seu pedido para se tornar um vendedor verificado. Iremos rever os seus dados.</p>
+
+        <form asp-action="RegisterVendedor" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label asp-for="TipoVendedor">Tipo de Vendedor</label>
+                    <select asp-for="TipoVendedor" class="form-control">
+                        <option value="" disabled selected>Selecione o Tipo</option>
+                        <option value="Individual">Individual (Particular)</option>
+                        <option value="Empresa">Empresa (Stand)</option>
+                    </select>
+                    <span asp-validation-for="TipoVendedor" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="NIF">NIF/NIPC</label>
+                    <input asp-for="NIF" type="text" placeholder="Número de Identificação Fiscal" required />
+                    <span asp-validation-for="NIF" class="text-danger"></span>
+                </div>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 25px 0 15px;">
+
+            <p class="subtitle" style="margin-bottom: 20px;">
+                Após submissão, a sua conta de vendedor será <strong>Pendente de Confirmação</strong> por um administrador.
+            </p>
+
+            <button type="submit" class="btn-submit">Submeter Pedido de Vendedor</button>
+        </form>
+    </div>
+</main>
+
+<!-- POPUP DE SUCESSO -->
+<div id="popupOverlay" class="popup-overlay" style="display:none;">
+    <div id="popupBox" class="popup-box">
+        <h3 id="popupTitle">Mensagem</h3>
+        <p id="popupMessage">Conteúdo da mensagem</p>
+        <div class="popup-buttons">
+            <button onclick="closePopup()" class="btn-close-popup">Continuar</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let redirectUrl = null;
+
+        function showCustomPopup(title, message, url) {
+            const popup = document.getElementById('popupOverlay');
+            document.getElementById('popupTitle').textContent = title;
+            document.getElementById('popupMessage').textContent = message;
+            popup.style.display = 'flex';
+            redirectUrl = url || null;
+        }
+
+        function closePopup() {
+            const popup = document.getElementById('popupOverlay');
+            popup.style.display = 'none';
+            if (redirectUrl) {
+                window.location.href = redirectUrl;
+            }
+        }
+
+        // Fechar popup ao clicar fora
+        document.getElementById('popupOverlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePopup();
+            }
+        });
+
+        // Verificar se há mensagem de sucesso do ViewBag (após POST)
+        @if (ViewBag.MensagemSucesso != null)
+        {
+            <text>
+                showCustomPopup(
+                    "Pedido Submetido com Sucesso!",
+                    "@ViewBag.MensagemSucesso",
+                    "@Url.Action("Index", "Home")"
+                );
+            </text>
+        }
+
+        // Mostrar popup se houver mensagem de erro do TempData
+        const mensagemErro = '@Html.Raw(TempData["MensagemErro"])';
+        if (mensagemErro && mensagemErro.trim() !== '') {
+            const popupBox = document.getElementById('popupBox');
+            popupBox.classList.add('error');
+            showCustomPopup("Erro", mensagemErro, "@Url.Action("UserMenu", "Account")");
+        }
+    </script>
+}
