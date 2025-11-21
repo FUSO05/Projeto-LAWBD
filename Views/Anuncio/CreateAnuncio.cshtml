@@ -1,0 +1,307 @@
+﻿@model AutoMarket.ViewModels.CreateAnuncioViewModel
+
+@{
+    ViewData["Title"] = "Criar Novo Anúncio - AutoMarket";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/createanuncio.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+}
+
+<main class="main-container">
+    <div class="page-header">
+        <h1>Criar Novo Anúncio</h1>
+        <p>Preencha os dados do seu veículo e publique em minutos</p>
+    </div>
+
+    <div class="progress-container">
+        <div class="progress-steps">
+            <div class="step active">
+                <div class="step-circle">1</div>
+                <span class="step-label">Fotos</span>
+                <div class="step-line"></div>
+            </div>
+            <div class="step">
+                <div class="step-circle">2</div>
+                <span class="step-label">Detalhes</span>
+                <div class="step-line"></div>
+            </div>
+            <div class="step">
+                <div class="step-circle">3</div>
+                <span class="step-label">Revisão</span>
+                <div class="step-line"></div>
+            </div>
+            <div class="step">
+                <div class="step-circle">4</div>
+                <span class="step-label">Publicar</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-layout">
+        <div class="form-section">
+            <form id="createAdForm" method="post" asp-action="CreateAnuncio" asp-controller="Anuncio" enctype="multipart/form-data">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="upload-area" id="uploadArea" onclick="document.getElementById('Imagens').click()">
+                    <div class="upload-icon">📸</div>
+                    <div class="upload-text">Clique ou arraste fotos aqui</div>
+                    <div class="upload-subtext">PNG, JPG até 5MB (máximo 10 fotos)</div>
+                    <input type="file" id="Imagens" name="Imagens" multiple accept="image/*" asp-for="Imagens">
+                    <span asp-validation-for="Imagens" class="text-danger"></span>
+                </div>
+                <div class="image-gallery" id="imageGallery"></div>
+
+                <div class="form-grid">
+
+                    <input type="hidden" id="Latitude" name="Latitude">
+                    <input type="hidden" id="Longitude" name="Longitude">
+
+                    <div class="form-group full-width">
+                        <label asp-for="Titulo">Título do Anúncio</label>
+                        <input type="text" asp-for="Titulo" class="form-control" placeholder="Ex: BMW X5 2020 em excelente estado" required>
+                        <span asp-validation-for="Titulo" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="MarcaId">Marca</label>
+                        <select asp-for="MarcaId" class="form-control" id="marcaSelect" required>
+                            <option value="">Selecionar Marca</option>
+                            @if (Model?.Marcas != null)
+                            {
+                                @foreach (var marca in Model.Marcas)
+                                {
+                                    <option value="@marca.Id">@marca.Nome</option>
+                                }
+                            }
+                        </select>
+                        <span asp-validation-for="MarcaId" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="ModeloId">Modelo</label>
+                        <select asp-for="ModeloId" class="form-control" id="modeloSelect" required>
+                            <option value="">Selecionar Modelo</option>
+                        </select>
+                        <span asp-validation-for="ModeloId" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Preco">Preço (€)</label>
+                        <input type="number" step="0.01" asp-for="Preco" class="form-control" placeholder="15000" required>
+                        <span asp-validation-for="Preco" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Ano">Ano</label>
+                        <input type="number" asp-for="Ano" class="form-control" placeholder="2020" required>
+                        <span asp-validation-for="Ano" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Caixa">Caixa de Velocidades</label>
+                        <select asp-for="Caixa" class="form-control" required>
+                            <option value="">Selecionar</option>
+                            <option value="Manual">Manual</option>
+                            <option value="Automática">Automática</option>
+                        </select>
+                        <span asp-validation-for="Caixa" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Quilometragem">Quilometragem (km)</label>
+                        <input type="number" asp-for="Quilometragem" class="form-control" placeholder="50000" required>
+                        <span asp-validation-for="Quilometragem" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Combustivel">Combustível</label>
+                        <select asp-for="Combustivel" class="form-control" required>
+                            <option value="">Selecionar</option>
+                            <option value="Gasolina">Gasolina</option>
+                            <option value="Diesel">Diesel</option>
+                            <option value="Elétrico">Elétrico</option>
+                            <option value="Híbrido">Híbrido</option>
+                        </select>
+                        <span asp-validation-for="Combustivel" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Categoria">Categoria</label>
+                        <select asp-for="Categoria" class="form-control" required>
+                            <option value="">Selecionar</option>
+                            <option value="Sedan">Sedan</option>
+                            <option value="SUV">SUV</option>
+                            <option value="Hatchback">Hatchback</option>
+                            <option value="Coupé">Coupé</option>
+                            <option value="Van">Van</option>
+                            <option value="Pickup">Pickup</option>
+                            <option value="Carrinha">Carrinha</option>
+                        </select>
+                        <span asp-validation-for="Categoria" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Estado">Estado do Veículo</label>
+                        <select asp-for="Estado" class="form-control" required>
+                            <option value="Novo">Novo</option>
+                            <option value="Usado" selected>Usado</option>
+                            <option value="Semi-novo">Semi-novo</option>
+                        </select>
+                        <span asp-validation-for="Estado" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Cor">Cor</label>
+                        <input type="text" asp-for="Cor" class="form-control" placeholder="Preto, Branco, Azul..." required>
+                        <span asp-validation-for="Cor" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label asp-for="Defeito">Defeito (se houver)</label>
+                        <textarea asp-for="Defeito" class="form-control" placeholder="Descreva algum defeito que o veículo possa ter..." rows="3"></textarea>
+                        <span asp-validation-for="Defeito" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label asp-for="Localizacao">Localização</label>
+                        <input type="text" asp-for="Localizacao" class="form-control" placeholder="Lisboa, Portugal" required>
+                        <span asp-validation-for="Localizacao" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label asp-for="Descricao">Descrição Detalhada</label>
+                        <textarea asp-for="Descricao" class="form-control" placeholder="Descreva o estado do veículo, equipamentos, histórico de manutenção..." required></textarea>
+                        <span asp-validation-for="Descricao" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">Publicar Anúncio</button>
+            </form>
+        </div>
+
+        <div class="sidebar">
+            <div class="sidebar-card">
+                <h4>💡 Dicas para Vender Rápido</h4>
+                <ul>
+                    <li>Use fotos de alta qualidade em diferentes ângulos</li>
+                    <li>Seja honesto sobre o estado do veículo</li>
+                    <li>Destaque equipamentos e extras</li>
+                    <li>Inclua histórico de manutenção</li>
+                    <li>Defina um preço competitivo</li>
+                </ul>
+            </div>
+
+            <div class="sidebar-card">
+                <h4>📊 Estatísticas</h4>
+                <p><strong>Anúncios com 8+ fotos</strong> recebem 3x mais visualizações</p>
+                <p style="margin-top: 10px;"><strong>Descrições completas</strong> aumentam contactos em 65%</p>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const imageInput = document.getElementById('Imagens');
+        const imageGallery = document.getElementById('imageGallery');
+        let uploadedFiles = [];
+
+        // Carregar modelos quando marca é selecionada
+        document.getElementById('marcaSelect').addEventListener('change', function() {
+            const marcaId = this.value;
+            const modeloSelect = document.getElementById('modeloSelect');
+
+            modeloSelect.innerHTML = '<option value="">Carregando...</option>';
+
+            if (marcaId) {
+                fetch(`/Anuncio/GetModelosByMarca?marcaId=${marcaId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        modeloSelect.innerHTML = '<option value="">Selecionar Modelo</option>';
+                        data.forEach(modelo => {
+                            modeloSelect.innerHTML += `<option value="${modelo.id}">${modelo.nome}</option>`;
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Erro ao carregar modelos:', error);
+                        modeloSelect.innerHTML = '<option value="">Erro ao carregar</option>';
+                    });
+            } else {
+                modeloSelect.innerHTML = '<option value="">Selecionar Modelo</option>';
+            }
+        });
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            handleFiles(files);
+        });
+
+        imageInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            console.log(`📸 Total de arquivos recebidos: ${files.length}`);
+            console.log(`📊 Imagens já carregadas: ${uploadedFiles.length}`);
+
+            for (let i = 0; i < files.length && uploadedFiles.length < 10; i++) {
+                const file = files[i];
+                console.log(`📷 Arquivo ${i}: ${file.name} (${file.type}, ${file.size} bytes)`);
+
+                if (file.type.startsWith('image/')) {
+                    uploadedFiles.push(file);
+                    displayImage(file);
+                    console.log(`✅ Imagem adicionada: ${file.name}`);
+                } else {
+                    console.log(`❌ Arquivo não é uma imagem: ${file.name}`);
+                }
+            }
+
+            console.log(`📊 Total de imagens após processar: ${uploadedFiles.length}`);
+        }
+
+        function displayImage(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const div = document.createElement('div');
+                div.className = 'image-item';
+                div.innerHTML = `
+                    <img src="${e.target.result}" alt="Preview">
+                    <button class="remove-image" onclick="removeImage(this)" type="button">×</button>
+                `;
+                imageGallery.appendChild(div);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeImage(btn) {
+            const item = btn.parentElement;
+            const index = Array.from(imageGallery.children).indexOf(item);
+            uploadedFiles.splice(index, 1);
+            item.remove();
+        }
+    </script>
+}

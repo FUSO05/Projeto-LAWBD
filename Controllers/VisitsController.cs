@@ -76,13 +76,25 @@ namespace AutoMarket.Controllers
                 return RedirectToAction("Login", "Account");
 
             var comprador = await _context.Compradores
-                .Include(c => c.Utilizador)
-                .FirstOrDefaultAsync(c => c.Utilizador.Email == User.Identity.Name);
+                    .Include(c => c.Utilizador)
+                    .FirstOrDefaultAsync(c => c.Utilizador.Email == User.Identity.Name);
 
-            var anuncio = await _context.Anuncios.FindAsync(anuncioId);
+            // 1. Precisamos carregar o Anuncio COMPLETO novamente, 
+            // caso contrário a View vai falhar ao tentar mostrar a imagem/titulo no return View
+            var anuncio = await _context.Anuncios
+                .Include(a => a.Modelo).ThenInclude(m => m.Marca)
+                .Include(a => a.Vendedor).ThenInclude(v => v.Utilizador)
+                .Include(a => a.Imagens)
+                .FirstOrDefaultAsync(a => a.Id == anuncioId);
 
-            if (comprador == null || anuncio == null)
-                return NotFound();
+            if (comprador == null || anuncio == null) return NotFound();
+
+            // Criar o ViewModel para caso precisemos retornar à View (seja erro ou sucesso)
+            var vm = new VisitasViewModel
+            {
+                Anuncio = anuncio,
+                Utilizador = comprador.Utilizador
+            };
 
             // 1️⃣ Validar data passada
             if (data.Date < DateTime.Today)
@@ -137,11 +149,8 @@ namespace AutoMarket.Controllers
 
             TempData["MensagemSucesso"] = "Visita agendada com sucesso!";
 
-            // ✅ REDIRECT em vez de retornar View
-            return RedirectToAction("Index", "Home");
-            // Ou se quiser redirecionar para uma página de "Minhas Visitas":
-            // return RedirectToAction("MinhasVisitas", "Visits");
-
+            // O JavaScript na View vai detetar o TempData e mostrar o popup com o link de redirecionamento.
+            return View(vm);
         }
 
         private DateTime Combine(DateTime data, string hora)

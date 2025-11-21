@@ -23,10 +23,17 @@
             <a asp-controller="Search" asp-action="SearchResults">Comprar</a>
             <a asp-controller="Home" asp-action="About">Sobre</a>
         </nav>
-
         <div class="header-actions">
             @if (User.Identity.IsAuthenticated)
             {
+                @* Botão Criar Anúncio para vendedores *@
+                @if (User.IsInRole("Vendedor"))
+                {
+                    <a asp-controller="Anuncio" asp-action="CreateAnuncio" class="btn-create-ad" title="Criar Anúncio">
+                        <i class="fas fa-plus"></i> Criar Anúncio
+                    </a>
+                }
+
                 <div class="user-menu">
                     <img src="@(User.FindFirst("FotoUrl")?.Value ?? "/img/avatar.png")"
                          alt="Foto do usuário"

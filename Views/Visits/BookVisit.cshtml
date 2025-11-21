@@ -5,26 +5,48 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-
-<link rel="stylesheet" href="~/css/bookvisit.css" />
+@section Styles {
+    <link rel="stylesheet" href="~/css/bookvisit.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_blue.css">
+}
 
 <main class="visit-container">
     <div class="visit-card">
-
-        <!-- TÍTULO -->
-        <h2>Agendar Visita ao Veículo</h2>
-        <p class="visit-subtitle">Escolha a data e hora para visitar o carro selecionado.</p>
+        <!-- HEADER -->
+        <div class="visit-header">
+            <div class="breadcrumb">
+                <a href="/">Início</a>
+                <span>›</span>
+                <a href="@Url.Action("ResultsInformationCar", "Search", new { id = Model.Anuncio.Id })">Veículo</a>
+                <span>›</span>
+                <span>Agendar Visita</span>
+            </div>
+            <h2>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" />
+                    <path d="M16 2v4M8 2v4M3 10h18" />
+                </svg>
+                Reserve o seu test drive
+            </h2>
+            <p class="visit-subtitle">Preencha os dados abaixo e confirme a sua visita</p>
+        </div>
 
         <!-- INFORMAÇÕES DO CARRO -->
         <div class="car-info-box">
-            <img src="@Model.Anuncio.Imagens?.FirstOrDefault()?.UrlImagem" class="car-img" />
-            <div>
+            <img src="@Model.Anuncio.Imagens?.FirstOrDefault()?.UrlImagem" class="car-img" alt="Imagem do veículo" />
+            <div class="car-info-content">
+                <span class="car-label">Veículo selecionado</span>
                 <h3 class="car-title">@Model.Anuncio.Modelo.Marca.Nome @Model.Anuncio.Modelo.Nome</h3>
-                <p class="car-price">@Model.Anuncio.Preco.ToString() €</p>
-                <p class="car-details">
-                    Ano: @Model.Anuncio.Ano | Quilómetros: @Model.Anuncio.Quilometragem.ToString() km
-                </p>
-                <input type="hidden" name="anuncioId" value="@Model.Anuncio.Id" />
+                <div class="car-meta">
+                    <span class="car-price">@Model.Anuncio.Preco.ToString()</span>
+                    <div class="car-specs">
+                        <span>@Model.Anuncio.Ano</span>
+                        <span>•</span>
+                        <span>@Model.Anuncio.Quilometragem.ToString() km</span>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -32,85 +54,127 @@
         <form asp-action="BookVisit" method="post" class="visit-form">
             <input type="hidden" name="anuncioId" value="@Model.Anuncio.Id" />
 
-            <div class="form-row">
-                <div>
-                    <label>Data da Visita</label>
-                    <input type="date" name="data" required />
+            <div class="form-section">
+                <h4 class="section-title">Quando pretende visitar?</h4>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="data">Data</label>
+                        <input type="text" id="data" name="data" placeholder="dd/mm/aaaa" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="horaSelect">Horário</label>
+                        <select id="horaSelect" name="hora" required>
+                            <option value="" selected disabled>Escolha...</option>
+                            <option value="09:00">09:00</option>
+                            <option value="10:00">10:00</option>
+                            <option value="11:00">11:00</option>
+                            <option value="14:00">14:00</option>
+                            <option value="15:00">15:00</option>
+                            <option value="16:00">16:00</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div>
-                    <label>Hora da Visita</label>
-                    <select id="horaSelect" name="hora" required>
-                        <option value="" selected disabled>Selecione...</option>
-                        <option value="09:00">09:00</option>
-                        <option value="10:00">10:00</option>
-                        <option value="11:00">11:00</option>
-                        <option value="14:00">14:00</option>
-                        <option value="15:00">15:00</option>
-                        <option value="16:00">16:00</option>
-                    </select>
-                </div>
+                <div id="vagasDia" class="vagas-info"></div>
             </div>
-            <p id="vagasDia" class="vagas-info"></p>
 
-            <button type="submit" class="visit-btn">Confirmar Visita</button>
+            <div class="form-actions">
+                <button type="submit" class="visit-btn">
+                    Confirmar Agendamento
+                </button>
+            </div>
         </form>
 
+        <!-- INFO BOX -->
+        <div class="info-box">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="16" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
+            <span>O vendedor será notificado e entrará em contacto consigo</span>
+        </div>
     </div>
 </main>
 
 <!-- POPUP -->
 <div id="popupOverlay" class="popup-overlay" style="display:none;">
     <div id="popupBox" class="popup-box">
+        <div class="popup-icon" id="popupIcon"></div>
         <h3 id="popupTitle">Mensagem</h3>
         <p id="popupMessage"></p>
-        <button onclick="closePopup()" class="btn-close-popup">OK</button>
+        <button onclick="closePopup()" class="btn-close-popup">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12" />
+            </svg>
+            Entendido
+        </button>
     </div>
 </div>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
-        // POPUP
         let redirectUrl = null;
 
-        function showCustomPopup(title, message, redirect) {
-            document.getElementById("popupTitle").textContent = title;
-            document.getElementById("popupMessage").textContent = message;
-            document.getElementById("popupOverlay").style.display = "flex";
-            redirectUrl = redirect;
-        }
+                function showCustomPopup(title, message, redirect, isError = false) {
+                    // Preenche os dados
+                    document.getElementById("popupTitle").textContent = title;
+                    document.getElementById("popupMessage").textContent = message;
 
-        function closePopup() {
-            document.getElementById("popupOverlay").style.display = "none";
-            if (redirectUrl)
-                window.location.href = redirectUrl;
-        }
+                    // Define o ícone
+                    const icon = document.getElementById("popupIcon");
+                    if (isError) {
+                        icon.innerHTML = '⚠';
+                        icon.className = 'popup-icon error';
+                    } else {
+                        icon.innerHTML = '✓';
+                        icon.className = 'popup-icon success';
+                    }
 
-        // mensagens de erro/sucesso vindas do backend
+                    // Define para onde vamos quando clicar em "Entendido"
+                    redirectUrl = redirect;
+
+                    // Mostra o popup
+                    document.getElementById("popupOverlay").style.display = "flex";
+                }
+
+                function closePopup() {
+                    document.getElementById("popupOverlay").style.display = "none";
+
+                    // AQUI acontece o redirecionamento mágico ao clicar no botão
+                    if (redirectUrl) {
+                        window.location.href = redirectUrl;
+                    }
+                }
+
+                // ==========================================
+                // 2. Injeção das Mensagens do Servidor
+                // ==========================================
+
         @if (TempData["MensagemErro"] != null)
         {
+            // Se houver erro, mostramos o popup e ficamos na mesma página (redirect = null)
             <text>
-                showCustomPopup(" ⚠ Erro ", "@TempData["MensagemErro"]");
+                            showCustomPopup("Atenção", "@TempData["MensagemErro"]", null, true);
             </text>
         }
 
         @if (TempData["MensagemSucesso"] != null)
         {
+            // Se houver sucesso, mostramos o popup.
+            // O terceiro parâmetro é o URL para onde vai ao clicar OK (Home/Index)
             <text>
-                showCustomPopup("Visita Agendada!", "@TempData["MensagemSucesso"]",
-                                "@Url.Action("Index", "Home")");
+                            showCustomPopup("Confirmado!", "@TempData["MensagemSucesso"]", "@Url.Action("Index", "Home")", false);
             </text>
         }
 
-
-        // 🔵 DESATIVAR datas passadas
         const inputData = document.querySelector("input[name='data']");
         inputData.min = new Date().toISOString().split("T")[0];
 
-
-        // 🔵 Atualizar horas disponíveis ao mudar a data
         inputData.addEventListener("change", function () {
-
             const data = this.value;
             const anuncioId = @Model.Anuncio.Id;
             const horaSelect = document.getElementById("horaSelect");
@@ -121,7 +185,6 @@
             fetch(`/Visits/GetHorasIndisponiveis?anuncioId=${anuncioId}&data=${data}`)
                 .then(r => r.json())
                 .then(horasIndisponiveis => {
-
                     let vagas = 0;
 
                     for (let opt of horaSelect.options) {
@@ -137,17 +200,103 @@
                         }
                     }
 
-                    // Mostrar número de vagas
                     if (vagas > 0) {
-                        vagasLabel.textContent = `${vagas} horário(s) disponível(is) neste dia.`;
-                        vagasLabel.style.color = "#2948b1";
+                        vagasLabel.innerHTML = `
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                            ${vagas} horário(s) disponível(is) neste dia
+                        `;
+                        vagasLabel.className = 'vagas-info available';
                     } else {
-                        vagasLabel.textContent = "Sem horários disponíveis neste dia.";
-                        vagasLabel.style.color = "red";
+                        vagasLabel.innerHTML = `
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="15" y1="9" x2="9" y2="15"/>
+                                <line x1="9" y1="9" x2="15" y2="15"/>
+                            </svg>
+                            Sem horários disponíveis neste dia
+                        `;
+                        vagasLabel.className = 'vagas-info unavailable';
                     }
 
                     horaSelect.value = "";
                 });
         });
     </script>
+    <script>
+        // ==========================================
+        // 2. Configuração do Flatpickr e Lógica de Horas
+        // ==========================================
+        
+        // Define a data mínima no input nativo (bom fallback)
+        const inputElement = document.querySelector("input[name='data']");
+        inputElement.min = new Date().toISOString().split("T")[0];
+
+        // Inicializa o Flatpickr
+        flatpickr("input[name='data']", {
+            altInput: true,         
+            altFormat: "d/m/Y",     
+            dateFormat: "Y-m-d",    
+            minDate: "today",       // <--- ISTO BLOQUEIA AS DATAS PASSADAS
+            disableMobile: "true",  // Força o tema visual mesmo no telemóvel
+            
+            // A lógica deve ficar AQUI, no evento do próprio calendário
+            onChange: function(selectedDates, dateStr, instance) {
+                const data = dateStr;
+                const anuncioId = @Model.Anuncio.Id;
+                const horaSelect = document.getElementById("horaSelect");
+                const vagasLabel = document.getElementById("vagasDia");
+
+                if (!data) return;
+
+                // Limpa seleção anterior e mostra loading (opcional)
+                horaSelect.value = "";
+                
+                fetch(`/Visits/GetHorasIndisponiveis?anuncioId=${anuncioId}&data=${data}`)
+                    .then(r => r.json())
+                    .then(horasIndisponiveis => {
+                        let vagas = 0;
+
+                        for (let opt of horaSelect.options) {
+                            if (opt.value === "") continue;
+
+                            if (horasIndisponiveis.includes(opt.value)) {
+                                opt.disabled = true;
+                                opt.classList.add("disabled-option");
+                                // Se a opção estava selecionada, deseleciona visualmente
+                                if (opt.selected) horaSelect.value = ""; 
+                            } else {
+                                opt.disabled = false;
+                                opt.classList.remove("disabled-option");
+                                vagas++;
+                            }
+                        }
+
+                        // Atualiza label de vagas
+                        if (vagas > 0) {
+                            vagasLabel.innerHTML = `
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"/>
+                                </svg>
+                                ${vagas} horário(s) disponível(is) neste dia
+                            `;
+                            vagasLabel.className = 'vagas-info available';
+                        } else {
+                            vagasLabel.innerHTML = `
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="15" y1="9" x2="9" y2="15"/>
+                                    <line x1="9" y1="9" x2="15" y2="15"/>
+                                </svg>
+                                Sem horários disponíveis neste dia
+                            `;
+                            vagasLabel.className = 'vagas-info unavailable';
+                        }
+                    })
+                    .catch(error => console.error('Erro ao buscar horas:', error));
+            }
+        });
+    </script>
+}
 }

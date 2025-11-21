@@ -4,52 +4,184 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<link rel="stylesheet" href="~/css/register.css" />
+@section Styles {
+    <link rel="stylesheet" href="~/css/registervendedor.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+}
 
 <main>
-    <div class="register-box">
-        <h2>Comece a Vender na AutoMarket</h2>
-        <p class="subtitle">Submeta o seu pedido para se tornar um vendedor verificado. Iremos rever os seus dados.</p>
+    <div class="register-container">
+        <!-- Left Side - Info -->
+        <div class="register-info">
+            <div class="info-content">
+                <div class="info-badge">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                    </svg>
+                    Torne-se Vendedor
+                </div>
+                <h1>Comece a vender os seus veículos hoje</h1>
+                <p class="info-description">Junte-se à nossa plataforma e alcance milhares de compradores interessados</p>
 
-        <form asp-action="RegisterVendedor" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="features-list">
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                        </div>
+                        <div class="feature-text">
+                            <strong>Alcance Nacional</strong>
+                            <span>Milhares de visitantes diariamente</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                        </div>
+                        <div class="feature-text">
+                            <strong>Gestão Simples</strong>
+                            <span>Painel intuitivo para os seus anúncios</span>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                        </div>
+                        <div class="feature-text">
+                            <strong>Suporte Dedicado</strong>
+                            <span>Equipa pronta para ajudar</span>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="form-grid">
-                <div class="form-group">
-                    <label asp-for="TipoVendedor">Tipo de Vendedor</label>
-                    <select asp-for="TipoVendedor" class="form-control">
-                        <option value="" disabled selected>Selecione o Tipo</option>
-                        <option value="Individual">Individual (Particular)</option>
-                        <option value="Empresa">Empresa (Stand)</option>
-                    </select>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-number">5k+</div>
+                        <div class="stat-label">Compradores</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">500+</div>
+                        <div class="stat-label">Vendedores</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">98%</div>
+                        <div class="stat-label">Satisfação</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side - Form -->
+        <div class="register-box">
+            <div class="form-header">
+                <h2>Pedido de Vendedor</h2>
+                <p class="subtitle">Preencha os dados para submeter o seu pedido</p>
+            </div>
+
+            <form asp-action="RegisterVendedor" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="tipo-vendedor-section">
+                    <label class="section-label">Selecione o tipo de vendedor</label>
+                    <div class="tipo-cards">
+                        <label class="tipo-card">
+                            <input type="radio" asp-for="TipoVendedor" value="Individual" required />
+                            <div class="tipo-card-content">
+                                <div class="tipo-icon">
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                        <circle cx="12" cy="7" r="4" />
+                                    </svg>
+                                </div>
+                                <h4>Individual</h4>
+                                <p>Venda como particular</p>
+                            </div>
+                            <div class="tipo-check">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                            </div>
+                        </label>
+
+                        <label class="tipo-card">
+                            <input type="radio" asp-for="TipoVendedor" value="Empresa" required />
+                            <div class="tipo-card-content">
+                                <div class="tipo-icon">
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                                        <polyline points="9 22 9 12 15 12 15 22" />
+                                    </svg>
+                                </div>
+                                <h4>Empresa</h4>
+                                <p>Stand ou concessionário</p>
+                            </div>
+                            <div class="tipo-check">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                            </div>
+                        </label>
+                    </div>
                     <span asp-validation-for="TipoVendedor" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
-                    <label asp-for="NIF">NIF/NIPC</label>
+                    <label asp-for="NIF">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <line x1="16" y1="13" x2="8" y2="13" />
+                            <line x1="16" y1="17" x2="8" y2="17" />
+                            <polyline points="10 9 9 9 8 9" />
+                        </svg>
+                        NIF/NIPC
+                    </label>
                     <input asp-for="NIF" type="text" placeholder="Número de Identificação Fiscal" required />
                     <span asp-validation-for="NIF" class="text-danger"></span>
                 </div>
-            </div>
 
-            <hr style="border: 0; border-top: 1px solid #eee; margin: 25px 0 15px;">
+                <div class="info-alert">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="16" x2="12" y2="12" />
+                        <line x1="12" y1="8" x2="12.01" y2="8" />
+                    </svg>
+                    <div>
+                        <strong>Análise do pedido</strong>
+                        <p>A sua conta ficará <strong>pendente</strong> até aprovação por um administrador. Será notificado por email.</p>
+                    </div>
+                </div>
 
-            <p class="subtitle" style="margin-bottom: 20px;">
-                Após submissão, a sua conta de vendedor será <strong>Pendente de Confirmação</strong> por um administrador.
-            </p>
-
-            <button type="submit" class="btn-submit">Submeter Pedido de Vendedor</button>
-        </form>
+                <button type="submit" class="btn-submit">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                        <polyline points="22 4 12 14.01 9 11.01" />
+                    </svg>
+                    Submeter Pedido
+                </button>
+            </form>
+        </div>
     </div>
 </main>
 
-<!-- POPUP DE SUCESSO -->
+<!-- POPUP -->
 <div id="popupOverlay" class="popup-overlay" style="display:none;">
     <div id="popupBox" class="popup-box">
+        <div class="popup-icon" id="popupIcon"></div>
         <h3 id="popupTitle">Mensagem</h3>
         <p id="popupMessage">Conteúdo da mensagem</p>
         <div class="popup-buttons">
-            <button onclick="closePopup()" class="btn-close-popup">Continuar</button>
+            <button onclick="closePopup()" class="btn-close-popup">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12" />
+                </svg>
+                Continuar
+            </button>
         </div>
     </div>
 </div>
@@ -58,10 +190,22 @@
     <script>
         let redirectUrl = null;
 
-        function showCustomPopup(title, message, url) {
+        function showCustomPopup(title, message, url, isError = false) {
             const popup = document.getElementById('popupOverlay');
+            const popupBox = document.getElementById('popupBox');
+            const icon = document.getElementById('popupIcon');
+
             document.getElementById('popupTitle').textContent = title;
             document.getElementById('popupMessage').textContent = message;
+
+            if (isError) {
+                icon.innerHTML = '✕';
+                icon.className = 'popup-icon error';
+            } else {
+                icon.innerHTML = '✓';
+                icon.className = 'popup-icon success';
+            }
+
             popup.style.display = 'flex';
             redirectUrl = url || null;
         }
@@ -74,31 +218,27 @@
             }
         }
 
-        // Fechar popup ao clicar fora
         document.getElementById('popupOverlay').addEventListener('click', function(e) {
             if (e.target === this) {
                 closePopup();
             }
         });
 
-        // Verificar se há mensagem de sucesso do ViewBag (após POST)
         @if (ViewBag.MensagemSucesso != null)
         {
             <text>
-                showCustomPopup(
-                    "Pedido Submetido com Sucesso!",
-                    "@ViewBag.MensagemSucesso",
-                    "@Url.Action("Index", "Home")"
-                );
+                    showCustomPopup(
+                        "Pedido Submetido!",
+                        "@ViewBag.MensagemSucesso",
+                        "@Url.Action("Index", "Home")",
+                        false
+                    );
             </text>
         }
 
-        // Mostrar popup se houver mensagem de erro do TempData
         const mensagemErro = '@Html.Raw(TempData["MensagemErro"])';
         if (mensagemErro && mensagemErro.trim() !== '') {
-            const popupBox = document.getElementById('popupBox');
-            popupBox.classList.add('error');
-            showCustomPopup("Erro", mensagemErro, "@Url.Action("UserMenu", "Account")");
+            showCustomPopup("Erro no Pedido", mensagemErro, "@Url.Action("UserMenu", "Account")", true);
         }
     </script>
 }
