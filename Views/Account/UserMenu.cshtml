@@ -1,69 +1,133 @@
 ﻿@using System.Security.Claims
 @model AutoMarket.Models.ViewModels.UtilizadorViewModel
-
 @{
     ViewData["Title"] = "Área de Comprador - Definições";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<link rel="stylesheet" href="~/css/usermenu.css" />
+@section Styles {
+    <link rel="stylesheet" href="~/css/usermenu.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+}
 
 <main class="user-settings-container">
     <aside class="sidebar">
-        <h3>Menu Comprador</h3>
-        <ul>
-            <li><a href="#">Minhas Reservas</a></li>
-            <li><a href="#">Compras</a></li>
-            <li><a href="#">Visitas</a></li>
-            <li><a asp-controller="Account" asp-action="UserMenuFavoritos">Favoritos</a></li>
-            <li><a asp-controller="Account" asp-action="UserMenu" class="active">Definições</a></li>
-        </ul>
 
-        @if (User.Identity!.IsAuthenticated && Model.TipoUser == "Comprador" && !Model.PedidoVendedorPendente)
+        @if (Model.TipoUser == "Comprador")
         {
-            <div class="seller-card">
-                <div class="seller-badge">NOVO</div>
-                <h4>Comece a Vender</h4>
-                <p>Publique os seus anúncios e alcance milhares de compradores</p>
-                <a asp-controller="Account" asp-action="RegisterVendedor" class="btn-seller">
-                    Criar Conta Vendedor
-                </a>
-            </div>
+            @await Html.PartialAsync("_MenuComprador", Model)
         }
+        else
+        {
+            @await Html.PartialAsync("_MenuVendedor", Model)
+        }
+
     </aside>
 
-    <!-- Formulário com POST -->
     <section class="settings-form">
-        <h2>Definições da Conta</h2>
+        <div class="form-header">
+            <div class="header-content">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M12 1v6m0 6v6m5.196-13.804L15.392 7m-6.784 6.784l-1.804 1.804M23 12h-6m-6 0H5m13.804 5.196L17 15.392m-6.784-6.784L8.412 6.804" />
+                </svg>
+                <div>
+                    <h2>Definições da Conta</h2>
+                    <p>Gerir as informações da sua conta</p>
+                </div>
+            </div>
+        </div>
 
         <form asp-action="SalvarDefinicoes" method="post" enctype="multipart/form-data">
-            <div class="profile-upload">
-                <img id="profilePreview" src="@Model.FotolUrl" alt="Foto de Perfil">
-                <label for="profileImage" class="upload-label">Alterar Foto</label>
-                <input type="file" id="profileImage" name="ProfileImage" accept="image/*">
+            <div class="profile-section">
+                <div class="profile-upload">
+                    <div class="profile-image-wrapper">
+                        <img id="profilePreview" src="@Model.FotolUrl" alt="Foto de Perfil">
+                        <div class="profile-overlay">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                                <circle cx="12" cy="13" r="4" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="profile-info">
+                        <label for="profileImage" class="upload-label">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="17 8 12 3 7 8" />
+                                <line x1="12" y1="3" x2="12" y2="15" />
+                            </svg>
+                            Alterar Foto
+                        </label>
+                        <input type="file" id="profileImage" name="ProfileImage" accept="image/*">
+                        <span class="upload-hint">JPG, PNG ou GIF (máx. 2MB)</span>
+                    </div>
+                </div>
             </div>
 
-            <div>
-                <label for="email">Email</label>
-                <input type="email" id="email" name="Email" value="@Model.Email">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="email">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                            <polyline points="22,6 12,13 2,6" />
+                        </svg>
+                        Email
+                    </label>
+                    <input type="email" id="email" name="Email" value="@Model.Email" placeholder="seu@email.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="contacto">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                        </svg>
+                        Contacto
+                    </label>
+                    <input type="tel" id="contacto" name="Contacto" value="@Model.Contacto" placeholder="+351 912 345 678">
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="morada">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                            <circle cx="12" cy="10" r="3" />
+                        </svg>
+                        Morada
+                    </label>
+                    <input type="text" id="morada" name="Morada" value="@Model.Morada" placeholder="Rua, número, cidade">
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="password">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        </svg>
+                        Nova Password
+                    </label>
+                    <input type="password" id="password" name="Password" placeholder="Digite uma nova password (opcional)">
+                    <span class="input-hint">Deixe em branco para manter a password atual</span>
+                </div>
             </div>
 
-            <div>
-                <label for="morada">Morada</label>
-                <input type="text" id="morada" name="Morada" value="@Model.Morada">
+            <div class="form-actions">
+                <button type="submit" class="btn-save">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                        <polyline points="17 21 17 13 7 13 7 21" />
+                        <polyline points="7 3 7 8 15 8" />
+                    </svg>
+                    Salvar Alterações
+                </button>
+                <button type="reset" class="btn-cancel">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                    Cancelar
+                </button>
             </div>
-
-            <div>
-                <label for="contacto">Contacto</label>
-                <input type="tel" id="contacto" name="Contacto" value="@Model.Contacto">
-            </div>
-
-            <div>
-                <label for="password">Password</label>
-                <input type="password" id="password" name="Password" placeholder="********">
-            </div>
-
-            <button type="submit" class="btn-save">Salvar Alterações</button>
         </form>
     </section>
 </main>

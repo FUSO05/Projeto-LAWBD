@@ -337,37 +337,42 @@ namespace AutoMarket.Controllers
         public async Task<IActionResult> UserMenuFavoritos()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
             if (userIdClaim == null)
                 return RedirectToAction("Login", "Account");
 
             int userId = int.Parse(userIdClaim);
 
-            var comprador = await _context.Compradores
-                .Include(c => c.Utilizador)
-                .Include(c => c.Favoritos)
-                    .ThenInclude(f => f.Anuncio)
-                        .ThenInclude(a => a.Modelo)
-                            .ThenInclude(m => m.Marca)
-                .Include(c => c.Favoritos)
-                    .ThenInclude(f => f.Anuncio.Imagens)
-                .FirstOrDefaultAsync(c => c.Id == userId);
+            var user = await _context.Utilizadores
+                .Include(u => u.CompradorInfo)
+                    .ThenInclude(c => c.Favoritos)
+                        .ThenInclude(f => f.Anuncio)
+                            .ThenInclude(a => a.Modelo)
+                                .ThenInclude(m => m.Marca)
+                .Include(u => u.CompradorInfo)
+                    .ThenInclude(c => c.Favoritos)
+                        .ThenInclude(f => f.Anuncio.Imagens)
+                .FirstOrDefaultAsync(u => u.Id == userId);
 
-            if (comprador == null)
+            if (user == null)
                 return RedirectToAction("Login", "Account");
+
+            var favoritos = user.CompradorInfo?.Favoritos.Select(f => f.Anuncio).ToList() ?? new List<Anuncio>();
 
             var vm = new FavoritosViewModel
             {
                 Utilizador = new UtilizadorViewModel
                 {
-                    Nome = comprador.Utilizador.Nome,
-                    FotolUrl = comprador.Utilizador.FotoUrl,
+                    Nome = user.Nome,
+                    FotolUrl = user.FotoUrl ?? "/img/avatar.png",
+                    TipoUser = user.TipoUser,
+                    PedidoVendedorPendente = user.PedidoVendedorPendente
                 },
-                Favoritos = comprador.Favoritos.Select(f => f.Anuncio).ToList()
+                Favoritos = favoritos
             };
 
             return View(vm);
         }
+
 
         // --- REGISTAR VENDEDOR ---
         [HttpGet]
@@ -449,6 +454,131 @@ namespace AutoMarket.Controllers
 
             // Retorna a mesma view para mostrar o popup
             return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> UserMenuVisitas()
+        {
+            // Obter o ID do utilizador a partir dos Claims
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null)
+                return RedirectToAction("Login", "Account");
+
+            int userId = int.Parse(userIdClaim);
+
+            // Buscar o utilizador com todas as informações necessárias
+            var user = await _context.Utilizadores
+                .Include(u => u.CompradorInfo)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+                return RedirectToAction("Login", "Account");
+
+            // Buscar as visitas agendadas do comprador
+            List<Reserva> visitas = new List<Reserva>();
+
+            if (user.CompradorInfo != null)
+            {
+                visitas = await _context.Reservas
+                    .Include(r => r.Anuncio)
+                        .ThenInclude(a => a.Modelo)
+                            .ThenInclude(m => m.Marca)
+                    .Include(r => r.Anuncio.Imagens)
+                    .Where(r => r.CompradorId == user.CompradorInfo.Id &&
+                               r.Estado == "Agendada")
+                    .OrderBy(r => r.DataHoraReserva)
+                    .ToListAsync();
+            }
+
+            // ✅ Criar o UtilizadorViewModel corretamente
+            var utilizadorViewModel = new UtilizadorViewModel
+            {
+                Nome = user.Nome,
+                Email = user.Email,
+                Morada = user.Morada,
+                Contacto = user.Contacto,
+                FotolUrl = user.FotoUrl ?? "/img/avatar.png",
+                TipoUser = user.TipoUser,
+                PedidoVendedorPendente = user.PedidoVendedorPendente
+            };
+
+            // ✅ Criar o ViewModel com UtilizadorViewModel em vez de Utilizador
+            var vm = new VisitasViewModel
+            {
+                UtilizadorViewModel = utilizadorViewModel,  // Use esta propriedade
+                Visitas = visitas,
+                Anuncio = null
+            };
+
+            return View(vm);
+        }
+
+        // No VisitsController.cs
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Cancelar(int id)
+        {
+            if (!User.Identity!.IsAuthenticated)
+                return Unauthorized();
+
+            var comprador = await _context.Compradores
+                .Include(c => c.Utilizador)
+                .FirstOrDefaultAsync(c => c.Utilizador.Email == User.Identity.Name);
+
+            if (comprador == null)
+                return NotFound();
+
+            var reserva = await _context.Reservas
+                .FirstOrDefaultAsync(r => r.Id == id && r.CompradorId == comprador.Id);
+
+            if (reserva == null)
+                return NotFound();
+
+            // Verificar se ainda pode cancelar (ex: não permitir cancelar visitas muito próximas)
+            if (reserva.DataHoraReserva.AddHours(-2) < DateTime.Now)
+            {
+                TempData["MensagemErro"] = "Não é possível cancelar visitas com menos de 2 horas de antecedência.";
+                return RedirectToAction("UserMenuVisitas", "Account");
+            }
+
+            reserva.Estado = "Cancelada";
+            await _context.SaveChangesAsync();
+
+            TempData["MensagemSucesso"] = "Visita cancelada com sucesso.";
+            return RedirectToAction("UserMenuVisitas", "Account");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Reagendar(int id)
+        {
+            if (!User.Identity!.IsAuthenticated)
+                return RedirectToAction("Login", "Account");
+
+            var comprador = await _context.Compradores
+                .Include(c => c.Utilizador)
+                .FirstOrDefaultAsync(c => c.Utilizador.Email == User.Identity.Name);
+
+            if (comprador == null)
+                return NotFound();
+
+            var reserva = await _context.Reservas
+                .Include(r => r.Anuncio)
+                    .ThenInclude(a => a.Modelo)
+                        .ThenInclude(m => m.Marca)
+                .Include(r => r.Anuncio.Imagens)
+                .FirstOrDefaultAsync(r => r.Id == id && r.CompradorId == comprador.Id);
+
+            if (reserva == null)
+                return NotFound();
+
+            // Cancelar a reserva antiga
+            reserva.Estado = "Cancelada";
+            await _context.SaveChangesAsync();
+
+            // Redirecionar para a página de agendamento com o mesmo anúncio
+            TempData["MensagemInfo"] = "Reagendamento iniciado. Selecione uma nova data e hora.";
+            return RedirectToAction("BookVisit", new { id = reserva.AnuncioId });
         }
     }
 }

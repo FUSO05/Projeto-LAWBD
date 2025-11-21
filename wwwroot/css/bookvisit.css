@@ -1,0 +1,120 @@
+﻿body {
+}
+.visit-container {
+    display: flex;
+    justify-content: center;
+    margin: 40px 0;
+}
+
+.visit-card {
+    width: 100%;
+    max-width: 700px;
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+h2 {
+    margin-bottom: 5px;
+}
+
+.visit-subtitle {
+    color: #666;
+    margin-bottom: 25px;
+}
+
+.car-info-box {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+    align-items: center;
+}
+
+.car-img {
+    width: 180px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.car-title {
+    font-size: 22px;
+    margin-bottom: 5px;
+}
+
+.car-price {
+    font-size: 20px;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.visit-form input,
+.visit-form select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.visit-btn {
+    width: 100%;
+    background: #007bff;
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 17px;
+    cursor: pointer;
+}
+
+    .visit-btn:hover {
+        background: #0056b3;
+    }
+
+/* POPUP */
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+.popup-box {
+    background: white;
+    padding: 25px 35px;
+    border-radius: 15px;
+    text-align: center;
+}
+
+.btn-close-popup {
+    background: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    margin-top: 15px;
+}
+
+.disabled-option {
+    color: #999 !important;
+    background: #f1f1f1 !important;
+    cursor: not-allowed !important;
+}
+
+.vagas-info {
+    font-weight: 600;
+    margin-top: 10px;
+}
+

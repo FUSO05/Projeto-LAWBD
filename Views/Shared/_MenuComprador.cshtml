@@ -1,0 +1,86 @@
+﻿@model AutoMarket.Models.ViewModels.UtilizadorViewModel
+
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+        </svg>
+        <h3>Menu Comprador</h3>
+    </div>
+
+    <ul class="menu-list">
+        <li>
+            <a href="#" class="@(ViewContext.RouteData.Values["action"]?.ToString() == "MinhasReservas" ? "active" : "")">
+                <!-- SVG Minhas Reservas -->
+                Minhas Reservas
+            </a>
+        </li>
+
+        <li>
+            <a href="#" class="@(ViewContext.RouteData.Values["action"]?.ToString() == "MinhasCompras" ? "active" : "")">
+                <!-- SVG Compras -->
+                Compras
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Account" asp-action="UserMenuVisitas"
+               class="@(ViewContext.RouteData.Values["action"]?.ToString() == "UserMenuVisitas" ? "active" : "")">
+                <!-- SVG Visitas -->
+                Visitas
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Account" asp-action="UserMenuFavoritos"
+               class="@(ViewContext.RouteData.Values["action"]?.ToString() == "UserMenuFavoritos" ? "active" : "")">
+                <!-- SVG Favoritos -->
+                Favoritos
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Account" asp-action="UserMenu"
+               class="@(ViewContext.RouteData.Values["action"]?.ToString() == "UserMenu" ? "active" : "")">
+                <!-- SVG Definições -->
+                Definições
+            </a>
+        </li>
+    </ul>
+
+    @* Card "Comece a Vender" apenas para Compradores sem pedido pendente **E** na página UserMenu *@
+    @if (User.Identity!.IsAuthenticated
+    && Model.TipoUser == "Comprador"
+    && !Model.PedidoVendedorPendente
+    && ViewContext.RouteData.Values["action"]?.ToString() == "UserMenu")
+    {
+        <div class="seller-card">
+            <div class="seller-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                </svg>
+                NOVO
+            </div>
+
+            <div class="seller-card-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="8.5" cy="7" r="4" />
+                    <line x1="20" y1="8" x2="20" y2="14" />
+                    <line x1="23" y1="11" x2="17" y2="11" />
+                </svg>
+            </div>
+
+            <h4>Comece a Vender</h4>
+            <p>Publique os seus anúncios e alcance milhares de compradores</p>
+
+            <a asp-controller="Account" asp-action="RegisterVendedor" class="btn-seller">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+                Criar Conta Vendedor
+            </a>
+        </div>
+    }
+</aside>

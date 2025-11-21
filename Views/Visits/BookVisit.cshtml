@@ -1,5 +1,153 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model AutoMarket.Models.ViewModels.VisitasViewModel
+
 @{
+    ViewData["Title"] = "Agendar Visita";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<link rel="stylesheet" href="~/css/bookvisit.css" />
+
+<main class="visit-container">
+    <div class="visit-card">
+
+        <!-- TÍTULO -->
+        <h2>Agendar Visita ao Veículo</h2>
+        <p class="visit-subtitle">Escolha a data e hora para visitar o carro selecionado.</p>
+
+        <!-- INFORMAÇÕES DO CARRO -->
+        <div class="car-info-box">
+            <img src="@Model.Anuncio.Imagens?.FirstOrDefault()?.UrlImagem" class="car-img" />
+            <div>
+                <h3 class="car-title">@Model.Anuncio.Modelo.Marca.Nome @Model.Anuncio.Modelo.Nome</h3>
+                <p class="car-price">@Model.Anuncio.Preco.ToString() €</p>
+                <p class="car-details">
+                    Ano: @Model.Anuncio.Ano | Quilómetros: @Model.Anuncio.Quilometragem.ToString() km
+                </p>
+                <input type="hidden" name="anuncioId" value="@Model.Anuncio.Id" />
+            </div>
+        </div>
+
+        <!-- FORMULÁRIO -->
+        <form asp-action="BookVisit" method="post" class="visit-form">
+            <input type="hidden" name="anuncioId" value="@Model.Anuncio.Id" />
+
+            <div class="form-row">
+                <div>
+                    <label>Data da Visita</label>
+                    <input type="date" name="data" required />
+                </div>
+
+                <div>
+                    <label>Hora da Visita</label>
+                    <select id="horaSelect" name="hora" required>
+                        <option value="" selected disabled>Selecione...</option>
+                        <option value="09:00">09:00</option>
+                        <option value="10:00">10:00</option>
+                        <option value="11:00">11:00</option>
+                        <option value="14:00">14:00</option>
+                        <option value="15:00">15:00</option>
+                        <option value="16:00">16:00</option>
+                    </select>
+                </div>
+            </div>
+            <p id="vagasDia" class="vagas-info"></p>
+
+            <button type="submit" class="visit-btn">Confirmar Visita</button>
+        </form>
+
+    </div>
+</main>
+
+<!-- POPUP -->
+<div id="popupOverlay" class="popup-overlay" style="display:none;">
+    <div id="popupBox" class="popup-box">
+        <h3 id="popupTitle">Mensagem</h3>
+        <p id="popupMessage"></p>
+        <button onclick="closePopup()" class="btn-close-popup">OK</button>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // POPUP
+        let redirectUrl = null;
+
+        function showCustomPopup(title, message, redirect) {
+            document.getElementById("popupTitle").textContent = title;
+            document.getElementById("popupMessage").textContent = message;
+            document.getElementById("popupOverlay").style.display = "flex";
+            redirectUrl = redirect;
+        }
+
+        function closePopup() {
+            document.getElementById("popupOverlay").style.display = "none";
+            if (redirectUrl)
+                window.location.href = redirectUrl;
+        }
+
+        // mensagens de erro/sucesso vindas do backend
+        @if (TempData["MensagemErro"] != null)
+        {
+            <text>
+                showCustomPopup(" ⚠ Erro ", "@TempData["MensagemErro"]");
+            </text>
+        }
+
+        @if (TempData["MensagemSucesso"] != null)
+        {
+            <text>
+                showCustomPopup("Visita Agendada!", "@TempData["MensagemSucesso"]",
+                                "@Url.Action("Index", "Home")");
+            </text>
+        }
+
+
+        // 🔵 DESATIVAR datas passadas
+        const inputData = document.querySelector("input[name='data']");
+        inputData.min = new Date().toISOString().split("T")[0];
+
+
+        // 🔵 Atualizar horas disponíveis ao mudar a data
+        inputData.addEventListener("change", function () {
+
+            const data = this.value;
+            const anuncioId = @Model.Anuncio.Id;
+            const horaSelect = document.getElementById("horaSelect");
+            const vagasLabel = document.getElementById("vagasDia");
+
+            if (!data) return;
+
+            fetch(`/Visits/GetHorasIndisponiveis?anuncioId=${anuncioId}&data=${data}`)
+                .then(r => r.json())
+                .then(horasIndisponiveis => {
+
+                    let vagas = 0;
+
+                    for (let opt of horaSelect.options) {
+                        if (opt.value === "") continue;
+
+                        if (horasIndisponiveis.includes(opt.value)) {
+                            opt.disabled = true;
+                            opt.classList.add("disabled-option");
+                        } else {
+                            opt.disabled = false;
+                            opt.classList.remove("disabled-option");
+                            vagas++;
+                        }
+                    }
+
+                    // Mostrar número de vagas
+                    if (vagas > 0) {
+                        vagasLabel.textContent = `${vagas} horário(s) disponível(is) neste dia.`;
+                        vagasLabel.style.color = "#2948b1";
+                    } else {
+                        vagasLabel.textContent = "Sem horários disponíveis neste dia.";
+                        vagasLabel.style.color = "red";
+                    }
+
+                    horaSelect.value = "";
+                });
+        });
+    </script>
 }

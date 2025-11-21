@@ -1,0 +1,102 @@
+﻿<aside class="sidebar">
+    <div class="sidebar-header">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+        </svg>
+        <h3>Menu Vendedor</h3>
+    </div>
+
+    <ul class="menu-list">
+
+        <!-- ====================== OPÇÕES DE VENDEDOR ====================== -->
+
+        <li>
+            <a asp-controller="Vendedor" asp-action="MeusAnuncios" class="@(ViewContext.RouteData.Values["action"].ToString() == "MeusAnuncios" ? "active" : "")">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" />
+                    <path d="M16 2v4M8 2v4M3 10h18" />
+                </svg>
+                Meus Anúncios
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Vendedor" asp-action="ReservasMeusCarros" class="@(ViewContext.RouteData.Values["action"].ToString() == "ReservasMeusCarros" ? "active" : "")">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="9" cy="21" r="1" />
+                    <circle cx="20" cy="21" r="1" />
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                </svg>
+                Reservas dos Meus Carros
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Vendedor" asp-action="VisitasMeusCarros" class="@(ViewContext.RouteData.Values["action"].ToString() == "VisitasMeusCarros" ? "active" : "")">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                </svg>
+                Visitas dos Meus Carros
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Account" asp-action="UserMenu" class="@(ViewContext.RouteData.Values["action"].ToString() == "UserMenu" ? "active" : "")">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M12 1v6m0 6v6m5.196-13.804L15.392 7m-6.784 6.784l-1.804 1.804M23 12h-6m-6 0H5m13.804 5.196L17 15.392m-6.784-6.784L8.412 6.804" />
+                </svg>
+                Definições
+            </a>
+        </li>
+
+        <!-- ====================== OPÇÕES DE COMPRADOR ====================== -->
+
+        <li class="menu-section-title" style="margin: 12px 0 4px 4px; font-size: 12px; font-weight: 700; color: #1a2a6c;">
+            Opções de Comprador
+        </li>
+
+        <li>
+            <a asp-controller="Account" asp-action="UserMenuFavoritos" class="@(ViewContext.RouteData.Values["action"].ToString() == "UserMenuFavoritos" ? "active" : "")">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 21s-6-4.35-9-8.5C-1.5 8 2 2.5 7.5 4.5c1.9.7 3.1 2.5 4.5 4 1.4-1.5 2.6-3.3 4.5-4 5.5-2 9 3.5 4.5 8-3 4.15-9 8.5-9 8.5z" />
+                </svg>
+                Favoritos
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Comprador" asp-action="MinhasReservas" class="@(ViewContext.RouteData.Values["action"].ToString() == "MinhasReservas" ? "active" : "")">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" />
+                    <path d="M16 2v4M8 2v4M3 10h18" />
+                </svg>
+                Minhas Reservas
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Account" asp-action="UserMenuVisitas" class="@(ViewContext.RouteData.Values["action"].ToString() == "UserMenuVisitas" ? "active" : "")">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                </svg>
+                Visitas Marcadas
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Comprador" asp-action="MinhasCompras" class="@(ViewContext.RouteData.Values["action"].ToString() == "MinhasCompras" ? "active" : "")">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                </svg>
+                Minhas Compras
+            </a>
+        </li>
+
+    </ul>
+</aside>
+
