@@ -1,0 +1,142 @@
+﻿@model AutoMarket.Models.ViewModels.ReservasViewModel
+@{
+    ViewData["Title"] = "Minhas Reservas";
+    Layout = "_Layout";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/usermenureservas.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+}
+
+<main class="reservas-container">
+    <form style="display:none;">
+        @Html.AntiForgeryToken()
+    </form>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        @if (Model.UtilizadorViewModel.TipoUser == "Vendedor")
+        {
+            @await Html.PartialAsync("_MenuVendedor", Model.UtilizadorViewModel)
+        }
+        else if (Model.UtilizadorViewModel.TipoUser == "Comprador")
+        {
+            @await Html.PartialAsync("_MenuComprador", Model.UtilizadorViewModel)
+        }
+    </aside>
+
+    <!-- CONTENT -->
+    <section class="reservas-content">
+        <div class="reservas-header">
+            <div class="header-info">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" />
+                    <path d="M16 2v4M8 2v4M3 10h18" />
+                </svg>
+                <div>
+                    <h2>Minhas Reservas</h2>
+                    <p>@(Model.Reservas?.Count() ?? 0) @(Model.Reservas?.Count() == 1 ? "reserva" : "reservas")</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="reservas-list">
+            @if (Model.Reservas == null || !Model.Reservas.Any())
+            {
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m0 6h.01" />
+                        </svg>
+                    </div>
+                    <h3>Nenhuma reserva encontrada</h3>
+                    <p>Explore os anúncios e faça reservas de veículos</p>
+                    <a href="/Search/SearchResults" class="btn-browse">Explorar Veículos</a>
+                </div>
+            }
+            else
+            {
+                @foreach (var reserva in Model.Reservas)
+                {
+                    <article class="reserva-card">
+                        <div class="reserva-image-container">
+                            <img src="@(reserva.Anuncio.Imagens?.FirstOrDefault()?.UrlImagem ?? "/images/default-car.jpg")"
+                                 alt="@reserva.Anuncio.Modelo?.Nome" class="reserva-image" />
+                            <div class="reserva-status-badge status-@reserva.Estado.ToLower()">
+                                @reserva.Estado
+                            </div>
+                        </div>
+
+                        <div class="reserva-details">
+                            <div class="reserva-main-info">
+                                <div class="reserva-top">
+                                    <div class="reserva-car-info">
+                                        <h3>@reserva.Anuncio.Modelo?.Marca?.Nome @reserva.Anuncio.Modelo?.Nome</h3>
+                                        <div class="reserva-specs">
+                                            <span class="spec-badge">@($"{reserva.Anuncio.Preco:C}")</span>
+                                            <span class="spec-badge">@reserva.DataHoraReserva.ToString("dd/MM/yyyy HH:mm")</span>
+                                            <span class="spec-badge">@reserva.Anuncio.Localizacao</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="reserva-info-extra">
+                                    <div class="info-item">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10" />
+                                            <polyline points="12 6 12 12 16 14" />
+                                        </svg>
+                                        <span>Expira em: @(reserva.PrazoExpiracao?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="reserva-actions">
+                                <a asp-controller="Search" asp-action="ResultsInformationCar" asp-route-id="@reserva.Anuncio.Id" class="btn-view btn-action">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                        <circle cx="12" cy="12" r="3" />
+                                    </svg>
+                                    Ver
+                                </a>
+
+                                @if (reserva.Estado == "Pendente")
+                                {
+                                    <button class="btn-action btn-cancel" onclick="cancelarReserva(@reserva.Id)">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="18" y1="6" x2="6" y2="18" />
+                                            <line x1="6" y1="6" x2="18" y2="18" />
+                                        </svg>
+                                        Cancelar
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </article>
+                }
+            }
+        </div>
+    </section>
+</main>
+
+@section Scripts {
+    <script>
+        function cancelarReserva(reservaId) {
+            if (!confirm('Tem certeza que deseja cancelar esta reserva?')) return;
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/Account/CancelarReserva/${reservaId}`;
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = '__RequestVerificationToken';
+            input.value = token;
+
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    </script>
+}

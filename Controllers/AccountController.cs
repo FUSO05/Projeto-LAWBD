@@ -1,13 +1,14 @@
-﻿using System.Security.Claims;
+﻿using AutoMarket.Models;
+using AutoMarket.Models.ViewModels;
+using AutoMarket.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using AutoMarket.Models;
-using AutoMarket.Services;
-using AutoMarket.Models.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
+using System.Security.Claims;
 
 namespace AutoMarket.Controllers
 {
@@ -401,12 +402,14 @@ namespace AutoMarket.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
+            // Obter ID do utilizador logado
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userIdClaim == null)
                 return RedirectToAction("Login");
 
             int userId = int.Parse(userIdClaim);
 
+            // Buscar o utilizador com CompradorInfo
             var user = await _context.Utilizadores
                 .Include(u => u.CompradorInfo)
                 .FirstOrDefaultAsync(u => u.Id == userId);
@@ -417,20 +420,21 @@ namespace AutoMarket.Controllers
                 return RedirectToAction("UserMenu");
             }
 
-            // Apenas marca que há um pedido pendente
+            // Marcar pedido pendente
             user.PedidoVendedorPendente = true;
             user.RejeitadoVendedor = false;
 
-            // Criar registro de pedido de vendedor, mas sem mudar TipoUser ainda
+            // Criar o objeto Vendedor
             var vendedor = new Vendedor
             {
-                Id = user.Id, // FK para Utilizador
                 TipoVendedor = model.TipoVendedor,
                 NIF = model.NIF,
-                Utilizador = user // <- importante para não gerar erro de FK nula
+                Utilizador = user,          // EF Core cuida do FK
+                Morada = user.Morada,       // Herda Morada do Utilizador
+                Contacto = user.Contacto    // Herda Contacto do Utilizador
             };
 
-            // Copiar propriedades do Comprador
+            // Se houver dados específicos do Comprador, copie também
             if (user.CompradorInfo != null)
             {
                 var compradorProps = user.CompradorInfo.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
@@ -438,7 +442,11 @@ namespace AutoMarket.Controllers
 
                 foreach (var cProp in compradorProps)
                 {
-                    var vProp = vendedorProps.FirstOrDefault(p => p.Name == cProp.Name && p.PropertyType == cProp.PropertyType && p.CanWrite);
+                    var vProp = vendedorProps.FirstOrDefault(p =>
+                        p.Name == cProp.Name &&
+                        p.PropertyType == cProp.PropertyType &&
+                        p.CanWrite);
+
                     if (vProp != null)
                     {
                         vProp.SetValue(vendedor, cProp.GetValue(user.CompradorInfo));
@@ -449,12 +457,11 @@ namespace AutoMarket.Controllers
             _context.Vendedores.Add(vendedor);
             await _context.SaveChangesAsync();
 
-            // Define a mensagem de sucesso no ViewBag
             ViewBag.MensagemSucesso = "O seu pedido para se tornar vendedor foi submetido com sucesso e aguarda confirmação do administrador.";
 
-            // Retorna a mesma view para mostrar o popup
             return View(model);
         }
+
 
         [HttpGet]
         public async Task<IActionResult> UserMenuVisitas()
@@ -580,5 +587,397 @@ namespace AutoMarket.Controllers
             TempData["MensagemInfo"] = "Reagendamento iniciado. Selecione uma nova data e hora.";
             return RedirectToAction("BookVisit", new { id = reserva.AnuncioId });
         }
+
+        [HttpGet]
+        public async Task<IActionResult> VendedorMenuVisitas()
+        {
+            // Obter o ID do utilizador a partir dos Claims
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null)
+                return RedirectToAction("Login", "Account");
+
+            int userId = int.Parse(userIdClaim);
+
+            // Buscar o utilizador com todas as informações necessárias
+            var user = await _context.Utilizadores
+                .Include(u => u.VendedorInfo)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null || user.VendedorInfo == null)
+                return RedirectToAction("Login", "Account");
+
+            // Buscar as visitas agendadas para os anúncios do vendedor
+            var visitas = await _context.Reservas
+                .Include(r => r.Anuncio)
+                    .ThenInclude(a => a.Modelo)
+                        .ThenInclude(m => m.Marca)
+                .Include(r => r.Anuncio.Imagens)
+                .Include(r => r.Comprador)
+                    .ThenInclude(c => c.Utilizador)
+                .Where(r => r.Anuncio.VendedorId == user.VendedorInfo.Id &&
+                           (r.Estado == "Agendada" || r.Estado == "Confirmada"))
+                .OrderBy(r => r.DataHoraReserva)
+                .ToListAsync();
+
+            // Criar o UtilizadorViewModel
+            var utilizadorViewModel = new UtilizadorViewModel
+            {
+                Nome = user.Nome,
+                Email = user.Email,
+                Morada = user.Morada,
+                Contacto = user.Contacto,
+                FotolUrl = user.FotoUrl ?? "/img/avatar.png",
+                TipoUser = user.TipoUser,
+                PedidoVendedorPendente = user.PedidoVendedorPendente
+            };
+
+            // Criar o ViewModel
+            var vm = new VisitasViewModel
+            {
+                UtilizadorViewModel = utilizadorViewModel,
+                Visitas = visitas,
+                Anuncio = null
+            };
+
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmarVisita(int id)
+        {
+            if (!User.Identity!.IsAuthenticated)
+                return Unauthorized();
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null)
+                return RedirectToAction("Login", "Account");
+
+            int userId = int.Parse(userIdClaim);
+
+            var vendedor = await _context.Vendedores
+                .Include(v => v.Utilizador)
+                .FirstOrDefaultAsync(v => v.Utilizador.Id == userId);
+
+            if (vendedor == null)
+                return NotFound();
+
+            var reserva = await _context.Reservas
+                .Include(r => r.Anuncio)
+                .Include(r => r.Comprador)
+                    .ThenInclude(c => c.Utilizador)
+                .FirstOrDefaultAsync(r => r.Id == id && r.Anuncio.VendedorId == vendedor.Id);
+
+            if (reserva == null)
+                return NotFound();
+
+            // Verificar se a visita ainda está agendada
+            if (reserva.Estado != "Agendada")
+            {
+                TempData["MensagemErro"] = "Esta visita já foi processada.";
+                return RedirectToAction("UserMenuVisitasVendedor", "Account");
+            }
+
+            // Confirmar a visita
+            reserva.Estado = "Confirmada";
+            await _context.SaveChangesAsync();
+
+            // Opcional: Enviar email de confirmação ao comprador
+            try
+            {
+                string templatePath = Path.Combine(Directory.GetCurrentDirectory(), "EmailTemplates", "VisitaConfirmada.html");
+                var placeholders = new Dictionary<string, string>
+        {
+            { "Nome", reserva.Comprador.Utilizador.Nome },
+            { "Veiculo", $"{reserva.Anuncio.Modelo?.Marca?.Nome} {reserva.Anuncio.Modelo?.Nome}" },
+            { "Data", reserva.DataHoraReserva.ToString("dd/MM/yyyy") },
+            { "Hora", reserva.DataHoraReserva.ToString("HH:mm") },
+            { "Local", reserva.Anuncio.Localizacao ?? "N/A" }
+        };
+
+                await _emailService.EnviarEmailComTemplateAsync(
+                    reserva.Comprador.Utilizador.Email,
+                    "Visita Confirmada",
+                    templatePath,
+                    placeholders
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao enviar email de confirmação: {ex.Message}");
+            }
+
+            TempData["MensagemSucesso"] = "Visita confirmada com sucesso!";
+            return RedirectToAction("UserMenuVisitasVendedor", "Account");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RecusarVisita(int id)
+        {
+            if (!User.Identity!.IsAuthenticated)
+                return Unauthorized();
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null)
+                return RedirectToAction("Login", "Account");
+
+            int userId = int.Parse(userIdClaim);
+
+            var vendedor = await _context.Vendedores
+                .Include(v => v.Utilizador)
+                .FirstOrDefaultAsync(v => v.Utilizador.Id == userId);
+
+            if (vendedor == null)
+                return NotFound();
+
+            var reserva = await _context.Reservas
+                .Include(r => r.Anuncio)
+                .Include(r => r.Comprador)
+                    .ThenInclude(c => c.Utilizador)
+                .FirstOrDefaultAsync(r => r.Id == id && r.Anuncio.VendedorId == vendedor.Id);
+
+            if (reserva == null)
+                return NotFound();
+
+            // Verificar se a visita ainda está agendada
+            if (reserva.Estado != "Agendada")
+            {
+                TempData["MensagemErro"] = "Esta visita já foi processada.";
+                return RedirectToAction("UserMenuVisitasVendedor", "Account");
+            }
+
+            // Recusar a visita
+            reserva.Estado = "Recusada";
+            await _context.SaveChangesAsync();
+
+            // Opcional: Enviar email de notificação ao comprador
+            try
+            {
+                string templatePath = Path.Combine(Directory.GetCurrentDirectory(), "EmailTemplates", "VisitaRecusada.html");
+                var placeholders = new Dictionary<string, string>
+        {
+            { "Nome", reserva.Comprador.Utilizador.Nome },
+            { "Veiculo", $"{reserva.Anuncio.Modelo?.Marca?.Nome} {reserva.Anuncio.Modelo?.Nome}" },
+            { "Data", reserva.DataHoraReserva.ToString("dd/MM/yyyy") },
+            { "Hora", reserva.DataHoraReserva.ToString("HH:mm") }
+        };
+
+                await _emailService.EnviarEmailComTemplateAsync(
+                    reserva.Comprador.Utilizador.Email,
+                    "Visita Recusada",
+                    templatePath,
+                    placeholders
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao enviar email de recusa: {ex.Message}");
+            }
+
+            TempData["MensagemSucesso"] = "Visita recusada.";
+            return RedirectToAction("UserMenuVisitasVendedor", "Account");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> HistoricoVisitasVendedor()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null)
+                return RedirectToAction("Login", "Account");
+
+            int userId = int.Parse(userIdClaim);
+
+            var user = await _context.Utilizadores
+                .Include(u => u.VendedorInfo)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null || user.VendedorInfo == null)
+                return RedirectToAction("Login", "Account");
+
+            // Buscar todas as visitas (incluindo canceladas, recusadas e concluídas)
+            var visitas = await _context.Reservas
+                .Include(r => r.Anuncio)
+                    .ThenInclude(a => a.Modelo)
+                        .ThenInclude(m => m.Marca)
+                .Include(r => r.Anuncio.Imagens)
+                .Include(r => r.Comprador)
+                    .ThenInclude(c => c.Utilizador)
+                .Where(r => r.Anuncio.VendedorId == user.VendedorInfo.Id)
+                .OrderByDescending(r => r.DataHoraReserva)
+                .ToListAsync();
+
+            var utilizadorViewModel = new UtilizadorViewModel
+            {
+                Nome = user.Nome,
+                Email = user.Email,
+                Morada = user.Morada,
+                Contacto = user.Contacto,
+                FotolUrl = user.FotoUrl ?? "/img/avatar.png",
+                TipoUser = user.TipoUser,
+                PedidoVendedorPendente = user.PedidoVendedorPendente
+            };
+
+            var vm = new VisitasViewModel
+            {
+                UtilizadorViewModel = utilizadorViewModel,
+                Visitas = visitas,
+                Anuncio = null
+            };
+
+            return View(vm);
+        }
+
+        [Authorize]
+        public async Task<IActionResult> UserMenuReservas()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null)
+                return RedirectToAction("Login", "Account");
+
+            int userId = int.Parse(userIdClaim);
+            var user = await _context.Utilizadores
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            var reservasQuery = _context.Reservas
+                .Include(r => r.Anuncio)
+                    .ThenInclude(a => a.Imagens)
+                .Include(r => r.Anuncio)
+                    .ThenInclude(a => a.Modelo)
+                        .ThenInclude(m => m.Marca)
+                .Include(r => r.Comprador)
+                    .ThenInclude(c => c.Utilizador)
+                .Where(r => r.CompradorId == user.Id &&
+                       (r.Estado == "Pendente" || r.Estado == "Reservado" || r.Estado == "Recusada"))
+                .OrderByDescending(r => r.DataHoraReserva) // <--- Ordenar da mais recente para a mais antiga
+                .AsQueryable();
+
+            var reservas = await reservasQuery.ToListAsync();
+
+            var model = new ReservasViewModel
+            {
+                UtilizadorViewModel = new UtilizadorViewModel
+                {
+                    Nome = user.Nome,
+                    TipoUser = user.TipoUser
+                },
+                Reservas = reservas
+            };
+
+            return View(model);
+        }
+
+
+        [Authorize]
+        public async Task<IActionResult> VendedorMenuReservas()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null)
+                return RedirectToAction("Login", "Account");
+
+            int userId = int.Parse(userIdClaim);
+            var user = await _context.Utilizadores
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            var reservasQuery = _context.Reservas
+                .Include(r => r.Anuncio)
+                    .ThenInclude(a => a.Imagens)
+                .Include(r => r.Anuncio)
+                    .ThenInclude(a => a.Modelo)
+                        .ThenInclude(m => m.Marca)
+                .Include(r => r.Comprador)
+                    .ThenInclude(c => c.Utilizador)
+                .Where(r => r.Anuncio.VendedorId == user.Id && (r.Estado == "Pendente" || r.Estado == "Reservado"))
+                .AsQueryable();
+
+            var reservas = await reservasQuery.ToListAsync();
+
+            var model = new ReservasViewModel
+            {
+                UtilizadorViewModel = new UtilizadorViewModel
+                {
+                    Nome = user.Nome,
+                    TipoUser = user.TipoUser
+                },
+                Reservas = reservas
+            };
+
+            return View(model);
+        }
+
+
+        // AprovarReserva
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AprovarReserva(int reservaId)
+        {
+            var reserva = await _context.Reservas
+                .Include(r => r.Anuncio)
+                    .ThenInclude(a => a.Modelo)
+                        .ThenInclude(m => m.Marca)
+                .Include(r => r.Comprador)
+                    .ThenInclude(c => c.Utilizador)
+                .FirstOrDefaultAsync(r => r.Id == reservaId);
+
+            if (reserva == null || reserva.Comprador?.Utilizador == null || reserva.Anuncio?.Modelo?.Marca == null)
+                return NotFound();
+
+            reserva.Estado = "Reservado";
+            reserva.Anuncio.Estado = "Reservado";
+            await _context.SaveChangesAsync();
+
+            // Enviar email usando template
+            string templatePath = Path.Combine(Directory.GetCurrentDirectory(), "EmailTemplates", "ReservaAprovada.html");
+            var placeholders = new Dictionary<string, string>
+                {
+                    { "Nome", reserva.Comprador.Utilizador.Nome },
+                    { "Veiculo", $"{reserva.Anuncio.Modelo.Marca.Nome} {reserva.Anuncio.Modelo.Nome}" },
+                    { "Data", reserva.DataHoraReserva.ToString("dd/MM/yyyy") },
+                    { "Hora", reserva.DataHoraReserva.ToString("HH:mm") },
+                    { "Local", reserva.Anuncio.Localizacao ?? "N/A" }
+                };
+
+            await _emailService.EnviarEmailComTemplateAsync(reserva.Comprador.Utilizador.Email, "Reserva Aprovada - AutoMarket", templatePath, placeholders);
+
+            return RedirectToAction("VendedorMenuReservas");
+        }
+
+        // RecusarReserva
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RecusarReserva(int reservaId)
+        {
+            var reserva = await _context.Reservas
+                .Include(r => r.Anuncio)
+                    .ThenInclude(a => a.Modelo)
+                        .ThenInclude(m => m.Marca)
+                .Include(r => r.Comprador)
+                    .ThenInclude(c => c.Utilizador)
+                .FirstOrDefaultAsync(r => r.Id == reservaId);
+
+            if (reserva == null || reserva.Comprador?.Utilizador == null || reserva.Anuncio?.Modelo?.Marca == null)
+                return NotFound();
+
+            reserva.Estado = "Recusada";
+            reserva.Anuncio.Estado = "Disponivel";
+            await _context.SaveChangesAsync();
+
+            string templatePath = Path.Combine(Directory.GetCurrentDirectory(), "EmailTemplates", "ReservaRecusada.html");
+            var placeholders = new Dictionary<string, string>
+                {
+                    { "Nome", reserva.Comprador.Utilizador.Nome },
+                    { "Veiculo", $"{reserva.Anuncio.Modelo.Marca.Nome} {reserva.Anuncio.Modelo.Nome}" },
+                    { "Data", reserva.DataHoraReserva.ToString("dd/MM/yyyy") },
+                    { "Hora", reserva.DataHoraReserva.ToString("HH:mm") }
+                };
+
+            await _emailService.EnviarEmailComTemplateAsync(reserva.Comprador.Utilizador.Email, "Reserva Recusada - AutoMarket", templatePath, placeholders);
+
+            return RedirectToAction("VendedorMenuReservas");
+        }
     }
 }
+
+

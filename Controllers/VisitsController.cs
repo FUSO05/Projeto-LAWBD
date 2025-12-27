@@ -1,7 +1,9 @@
 ﻿using AutoMarket.Models;
 using AutoMarket.Models.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace AutoMarket.Controllers
 {
@@ -9,6 +11,12 @@ namespace AutoMarket.Controllers
     {
         private readonly AppDbContext _context;
         private readonly int _expHoras = 48; // prazo padrão
+
+        // Adicione esta classe no topo do controller ou numa pasta Models
+        public class ReservaRequest
+        {
+            public int anuncioId { get; set; }
+        }
 
         public VisitsController(AppDbContext context)
         {
@@ -181,6 +189,102 @@ namespace AutoMarket.Controllers
             }
 
             return Json(horasIndisponiveis);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Route("Visits/ReservarVeiculo")]
+        public async Task<IActionResult> ReservarVeiculo(int anuncioId)
+        {
+            var anuncio = await _context.Anuncios.FirstOrDefaultAsync(a => a.Id == anuncioId);
+
+            if (anuncio == null)
+                return NotFound();
+
+            if (anuncio.Estado != "Disponivel")
+            {
+                return RedirectToAction("ResultsInformationCar", "Search", new { id = anuncioId });
+            }
+
+            var userEmail = User.Identity.Name;
+            var comprador = await _context.Compradores
+                .Include(c => c.Utilizador)
+                .FirstOrDefaultAsync(c => c.Utilizador.Email == userEmail);
+
+            if (comprador == null)
+                return NotFound();
+
+            var reserva = new Reserva
+            {
+                CompradorId = comprador.Id,
+                AnuncioId = anuncio.Id,
+                Estado = "Pendente", // ✅ Estado Pendente
+                PrazoExpiracao = DateTime.Now.AddHours(48),
+                DataHoraReserva = DateTime.Now
+            };
+
+            _context.Reservas.Add(reserva);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("ResultsInformationCar", "Search", new { id = anuncioId });
+        }
+
+        [Authorize]
+        [HttpPost]
+        [Route("Visits/ReservarVeiculoJson")]
+        public async Task<IActionResult> ReservarVeiculoJson([FromBody] ReservaRequest request)
+        {
+            Console.WriteLine($"AnuncioId recebido: {request?.anuncioId}");
+
+            if (request == null || request.anuncioId == 0)
+            {
+                return Json(new { success = false, message = "ID inválido recebido." });
+            }
+
+            var anuncio = await _context.Anuncios.FirstOrDefaultAsync(a => a.Id == request.anuncioId);
+
+            Console.WriteLine($"Anuncio encontrado: {anuncio != null}");
+
+            if (anuncio == null)
+                return Json(new { success = false, message = "Veículo não encontrado." });
+
+            var userEmail = User.Identity.Name;
+            var comprador = await _context.Compradores
+                .Include(c => c.Utilizador)
+                .FirstOrDefaultAsync(c => c.Utilizador.Email == userEmail);
+
+            if (comprador == null)
+                return Json(new { success = false, message = "Comprador não encontrado." });
+
+            // Verificar se já existe reserva pendente ou aprovada
+            var reservaExistente = await _context.Reservas
+                .AnyAsync(r => r.AnuncioId == request.anuncioId &&
+                               r.CompradorId == comprador.Id &&
+                               (r.Estado == "Pendente" || r.Estado == "Reservado")); // ✅ Verifica ambos estados
+
+            if (reservaExistente)
+                return Json(new { success = false, message = "Você já tem uma reserva para este veículo." });
+
+            // Criar reserva com estado "Pendente" ✅
+            var reserva = new Reserva
+            {
+                CompradorId = comprador.Id,
+                AnuncioId = anuncio.Id,
+                Estado = "Pendente", // ✅ Estado inicial é Pendente
+                PrazoExpiracao = DateTime.Now.AddHours(48),
+                DataHoraReserva = DateTime.Now
+            };
+
+            _context.Reservas.Add(reserva);
+
+            await _context.SaveChangesAsync();
+
+            return Json(new
+            {
+                success = true,
+                message = "Pedido de reserva enviado! Aguarde a aprovação do vendedor."
+            });
         }
 
     }

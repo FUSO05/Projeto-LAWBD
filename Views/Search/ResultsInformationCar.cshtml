@@ -200,6 +200,27 @@
             </div>
         </div>
 
+        <!-- Botão de reservar veículo -->
+        @if (User.Identity?.IsAuthenticated ?? false)
+        {
+            if (ViewBag.ReservaAtiva == null)
+            {
+                <form id="formReservar" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="anuncioId" name="anuncioId" value="@Model.Id" />
+                    <button type="submit" id="btnReservar" class="btn-reservar">
+                        🔒 Reservar Veículo
+                    </button>
+                </form>
+            }
+            else
+            {
+                <div class="vehicle-status @(ViewBag.ReservaAtiva.Estado.ToLower())">
+                    Veículo @ViewBag.ReservaAtiva.Estado
+                </div>
+            }
+        }
+
         <!-- Box de contacto -->
         <div class="contact-box">
             <div class="contact-header">
@@ -282,6 +303,19 @@
     </div>
 </main>
 
+<!-- POPUP DE RESERVA -->
+<div id="popupReserva" class="popup-overlay" style="display:none;">
+    <div class="popup-box">
+        <div class="popup-icon">🔒</div>
+        <h3>Pedido de Reserva Enviado</h3>
+        <p>O seu pedido de reserva foi enviado ao vendedor.</p>
+        <p>Aguarde a aprovação do vendedor nas próximas 48 horas.</p>
+        <div class="popup-buttons">
+            <button onclick="closeReservaPopup()" class="btn-close-popup">Fechar</button>
+        </div>
+    </div>
+</div>
+
 <!-- POPUP LOGIN GENÉRICO -->
 <div id="genericLoginPopup" class="popup-overlay" style="display:none;">
     <div class="popup-box">
@@ -342,9 +376,10 @@
 
         function agendarVisita() {
             var isAuthenticated = @((User.Identity?.IsAuthenticated ?? false).ToString().ToLower());
-
             if (!isAuthenticated) {
                 openGenericPopup("Faça login para agendar uma visita a este veículo.");
+            } else if ("@Model.Estado" !== "Disponivel") {
+                alert("Veículo não disponível para visitas no momento.");
             } else {
                 window.location.href = '/Visits/BookVisit?id=@Model.Id';
             }
@@ -387,5 +422,80 @@
             const totalImages = document.querySelectorAll('.car-thumbnails img').length;
             document.getElementById('totalImages').textContent = totalImages;
         });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('formReservar');
+            if (!form) return; // ✅ evita erro se o formulário não existir
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const btn = document.getElementById('btnReservar');
+            const anuncioIdElement = form.querySelector('input[name="anuncioId"]'); // ✅ Buscar dentro do form
+            const anuncioId = anuncioIdElement ? anuncioIdElement.value : null;
+            const token = form.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            console.log('anuncioId value:', anuncioId); // ✅ Deve mostrar "17"
+
+            if (!anuncioId || anuncioId === "0") {
+                alert("Erro: ID do veículo não definido.");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'A reservar...';
+
+            try {
+                const res = await fetch('/Visits/ReservarVeiculoJson', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({ anuncioId: parseInt(anuncioId) })
+                });
+
+                    if (!res.ok) {
+                        const err = await res.json();
+                        alert(err.message || "Erro ao reservar veículo.");
+                        btn.disabled = false;
+                        btn.textContent = '🔒 Reservar Veículo';
+                        return;
+                    }
+
+                    const data = await res.json();
+
+                    if (data.success) {
+                        document.getElementById("popupReserva").style.display = "flex";
+                        btn.style.display = 'none';
+                    } else {
+                        alert(data.message || "Erro ao reservar veículo.");
+                        btn.disabled = false;
+                        btn.textContent = '🔒 Reservar Veículo';
+                    }
+
+                } catch (err) {
+                    console.error(err);
+                    alert("Erro ao tentar reservar o veículo.");
+                    btn.disabled = false;
+                    btn.textContent = '🔒 Reservar Veículo';
+                }
+            });
+
+            // Mostrar popup se TempData indicar sucesso
+            const msgSucesso = '@TempData["MensagemSucesso"]';
+            if (msgSucesso) {
+                if (msgSucesso.includes("Veículo reservado")) {
+                    document.getElementById("popupReserva").style.display = "flex";
+                } else {
+                    alert(msgSucesso); // outras mensagens de sucesso
+                }
+            }
+        });
+
+        function closeReservaPopup() {
+            document.getElementById("popupReserva").style.display = "none";
+        }
+
     </script>
 }

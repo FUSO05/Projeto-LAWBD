@@ -454,6 +454,36 @@ body {
         border-color: #1a2a6c;
     }
 
+.btn-reservar {
+    width: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #1a2a6c 100%);
+    color: #fff;
+    padding: 14px 20px;
+    font-weight: 700;
+    font-size: 15px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(26, 42, 108, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+    .btn-reservar:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(26, 42, 108, 0.4);
+    }
+
+    .btn-reservar:disabled {
+        background: #c0c6e0;
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+
+
 .seller-info {
     margin-top: 20px;
     padding-top: 20px;

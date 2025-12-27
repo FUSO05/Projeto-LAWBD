@@ -8,8 +8,7 @@
 
         public int AnuncioId { get; set; }
         public Anuncio Anuncio { get; set; } = null!;
-
-        public string? Estado { get; set; }
+        public string Estado { get; set; } = "Disponivel";
         public DateTime? PrazoExpiracao { get; set; }
         public DateTime DataHoraReserva { get; set; } = DateTime.Now;
     }

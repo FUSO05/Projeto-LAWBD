@@ -28,6 +28,7 @@ header {
     transition: all 0.3s ease;
 }
 
+/* Logo padrão como texto */
 .logo {
     font-size: 24px;
     font-weight: 700;
@@ -40,6 +41,18 @@ header {
     display: inline-block;
 }
 
+/* Logo como imagem para usuários não-admin */
+body:not(.admin) .logo img {
+    display: block; /* Remove espaços abaixo da imagem */
+    width: auto; /* Mantém proporção natural */
+    height: 40px; /* Ajuste a altura desejada */
+    margin: 0; /* Remove margens */
+    padding: 0; /* Remove padding */
+    border: none; /* Remove borda se houver */
+    vertical-align: middle;
+}
+
+/* Logo como texto para admin */
 body.admin header .logo {
     background: linear-gradient(135deg, #f5af19, #f12711);
     -webkit-background-clip: text;
@@ -48,7 +61,6 @@ body.admin header .logo {
     -moz-background-clip: text;
     -moz-text-fill-color: transparent;
 }
-
 
 nav {
     display: flex;

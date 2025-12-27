@@ -1,0 +1,240 @@
+﻿@model AutoMarket.Models.ViewModels.VisitasViewModel
+@{
+    ViewData["Title"] = "Área de Vendedor - Visitas";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/usermenuvisitas.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+}
+
+<main class="visits-container">
+    <form style="display:none;">
+        @Html.AntiForgeryToken()
+    </form>
+
+    <aside class="sidebar">
+        @await Html.PartialAsync("_MenuVendedor", Model.UtilizadorViewModel)
+    </aside>
+
+    <section class="visits-content">
+        <div class="visits-header">
+            <div class="header-info">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+                <div>
+                    <h2>Visitas aos Meus Veículos</h2>
+                    @if (Model != null && Model.Visitas != null && Model.Visitas.Any())
+                    {
+                        <p>@Model.Visitas.Count() @(Model.Visitas.Count() == 1 ? "visita agendada" : "visitas agendadas")</p>
+                    }
+                    else
+                    {
+                        <p>Nenhuma visita agendada</p>
+                    }
+                </div>
+            </div>
+            <a href="@Url.Action("HistoricoVisitasVendedor", "Account")" class="btn-historico">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                </svg>
+                Histórico
+            </a>
+        </div>
+
+        <div class="visits-list">
+            @if (Model == null || Model.Visitas == null || !Model.Visitas.Any())
+            {
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                            <line x1="16" y1="2" x2="16" y2="6" />
+                            <line x1="8" y1="2" x2="8" y2="6" />
+                            <line x1="3" y1="10" x2="21" y2="10" />
+                        </svg>
+                    </div>
+                    <h3>Ainda não tem visitas agendadas</h3>
+                    <p>Quando os compradores agendarem visitas aos seus veículos, elas aparecerão aqui</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var visita in Model.Visitas)
+                {
+                    <article class="visit-card">
+                        <div class="visit-image-container">
+                            <img src="@(visita.Anuncio.Imagens?.FirstOrDefault()?.UrlImagem ?? "/images/default-car.jpg")"
+                                 alt="@visita.Anuncio.Modelo?.Nome" class="visit-image" />
+                            <div class="visit-status-badge status-@visita.Estado.ToLower()">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    @if (visita.Estado == "Agendada")
+                                    {
+                                        <polyline points="20 6 9 17 4 12" />
+                                    }
+                                    else if (visita.Estado == "Cancelada")
+                                    {
+                                        <line x1="18" y1="6" x2="6" y2="18" />
+                                        <line x1="6" y1="6" x2="18" y2="18" />
+                                    }
+                                    else if (visita.Estado == "Confirmada")
+                                    {
+                                        <polyline points="20 6 9 17 4 12" />
+                                    }
+                                    else if (visita.Estado == "Recusada")
+                                    {
+                                        <line x1="18" y1="6" x2="6" y2="18" />
+                                        <line x1="6" y1="6" x2="18" y2="18" />
+                                    }
+                                </svg>
+                                @visita.Estado
+                            </div>
+                        </div>
+
+                        <div class="visit-details">
+                            <div class="visit-main-info">
+                                <div class="visit-top">
+                                    <div class="visit-car-info">
+                                        <h3>@visita.Anuncio.Modelo?.Marca?.Nome @visita.Anuncio.Modelo?.Nome</h3>
+                                        <div class="visit-specs">
+                                            <span class="spec-badge">@visita.Anuncio.Ano</span>
+                                            <span class="spec-badge">@($"{visita.Anuncio.Quilometragem:N0} km")</span>
+                                            <span class="spec-badge">@visita.Anuncio.Combustivel</span>
+                                            <span class="spec-badge">@visita.Anuncio.Caixa</span>
+                                        </div>
+                                    </div>
+                                    <div class="visit-price-section">
+                                        <span class="visit-price">@($"{visita.Anuncio.Preco:C}")</span>
+                                    </div>
+                                </div>
+
+                                <div class="visit-datetime">
+                                    <div class="datetime-item">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                            <line x1="16" y1="2" x2="16" y2="6" />
+                                            <line x1="8" y1="2" x2="8" y2="6" />
+                                            <line x1="3" y1="10" x2="21" y2="10" />
+                                        </svg>
+                                        <div>
+                                            <span class="label">Data</span>
+                                            <span class="value">@visita.DataHoraReserva.ToString("dd/MM/yyyy")</span>
+                                        </div>
+                                    </div>
+                                    <div class="datetime-item">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10" />
+                                            <polyline points="12 6 12 12 16 14" />
+                                        </svg>
+                                        <div>
+                                            <span class="label">Hora</span>
+                                            <span class="value">@visita.DataHoraReserva.ToString("HH:mm")</span>
+                                        </div>
+                                    </div>
+                                    <div class="datetime-item">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                                            <circle cx="12" cy="10" r="3" />
+                                        </svg>
+                                        <div>
+                                            <span class="label">Local</span>
+                                            <span class="value">@(visita.Anuncio.Localizacao ?? "N/A")</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Informações do Comprador -->
+                                <div class="buyer-info-compact">
+                                    <div class="buyer-detail">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                            <circle cx="12" cy="7" r="4" />
+                                        </svg>
+                                        <span>@visita.Comprador?.Utilizador?.Nome</span>
+                                    </div>
+                                    <div class="buyer-detail">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                                        </svg>
+                                        <span>@visita.Comprador?.Utilizador?.Contacto</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="visit-actions">
+                                <a asp-controller="Search" asp-action="ResultsInformationCar" asp-route-id="@visita.Anuncio.Id" class="btn-action btn-view">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                        <circle cx="12" cy="12" r="3" />
+                                    </svg>
+                                    Ver Anúncio
+                                </a>
+                                @if (visita.Estado == "Agendada")
+                                {
+                                    <button class="btn-action btn-confirm" onclick="confirmarVisita(@visita.Id)">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="20 6 9 17 4 12" />
+                                        </svg>
+                                        Aceitar
+                                    </button>
+                                    <button class="btn-action btn-reject" onclick="recusarVisita(@visita.Id)">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="18" y1="6" x2="6" y2="18" />
+                                            <line x1="6" y1="6" x2="18" y2="18" />
+                                        </svg>
+                                        Recusar
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </article>
+                }
+            }
+        </div>
+    </section>
+</main>
+
+@section Scripts {
+    <script>
+        function confirmarVisita(reservaId) {
+            if (!confirm('Tem certeza que deseja aceitar esta visita?')) return;
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/Account/ConfirmarVisita/${reservaId}`;
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = '__RequestVerificationToken';
+            input.value = token;
+
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function recusarVisita(reservaId) {
+            if (!confirm('Tem certeza que deseja recusar esta visita?')) return;
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/Account/RecusarVisita/${reservaId}`;
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = '__RequestVerificationToken';
+            input.value = token;
+
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    </script>
+}

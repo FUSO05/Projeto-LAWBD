@@ -656,3 +656,656 @@ namespace AutoMarket.Controllers
 }
 )
 )
+///////////////////////////////////////////
+
+-- ============================================
+-- Inserção Completa de Marcas e Modelos de Carros
+-- ============================================
+
+-- INSERIR MARCAS
+-- Inserir novas marcas sem duplicar as existentes
+-- ============================================
+-- INSERÇÃO DE NOVAS MARCAS COM ID FIXO
+-- ============================================
+
+INSERT INTO Marcas (Id, Nome) SELECT 10, 'Toyota'       WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Toyota');
+INSERT INTO Marcas (Id, Nome) SELECT 11, 'Honda'        WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Honda');
+INSERT INTO Marcas (Id, Nome) SELECT 12, 'Ford'         WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Ford');
+INSERT INTO Marcas (Id, Nome) SELECT 13, 'Chevrolet'    WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Chevrolet');
+INSERT INTO Marcas (Id, Nome) SELECT 14, 'Nissan'       WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Nissan');
+INSERT INTO Marcas (Id, Nome) SELECT 15, 'Hyundai'      WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Hyundai');
+INSERT INTO Marcas (Id, Nome) SELECT 16, 'Peugeot'      WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Peugeot');
+INSERT INTO Marcas (Id, Nome) SELECT 17, 'Renault'      WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Renault');
+INSERT INTO Marcas (Id, Nome) SELECT 18, 'Citroën'      WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Citroën');
+INSERT INTO Marcas (Id, Nome) SELECT 19, 'Fiat'         WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Fiat');
+INSERT INTO Marcas (Id, Nome) SELECT 20, 'Opel'         WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Opel');
+INSERT INTO Marcas (Id, Nome) SELECT 21, 'Volvo'        WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Volvo');
+INSERT INTO Marcas (Id, Nome) SELECT 22, 'Porsche'      WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Porsche');
+INSERT INTO Marcas (Id, Nome) SELECT 23, 'Land Rover'   WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Land Rover');
+INSERT INTO Marcas (Id, Nome) SELECT 24, 'Jeep'         WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Jeep');
+INSERT INTO Marcas (Id, Nome) SELECT 25, 'Subaru'       WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Subaru');
+INSERT INTO Marcas (Id, Nome) SELECT 26, 'Mitsubishi'   WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Mitsubishi');
+INSERT INTO Marcas (Id, Nome) SELECT 27, 'Lexus'        WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Lexus');
+INSERT INTO Marcas (Id, Nome) SELECT 28, 'Mini'         WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Mini');
+INSERT INTO Marcas (Id, Nome) SELECT 29, 'Skoda'        WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Skoda');
+INSERT INTO Marcas (Id, Nome) SELECT 30, 'Alfa Romeo'   WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Alfa Romeo');
+INSERT INTO Marcas (Id, Nome) SELECT 31, 'Dacia'        WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Dacia');
+INSERT INTO Marcas (Id, Nome) SELECT 32, 'Suzuki'       WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Suzuki');
+INSERT INTO Marcas (Id, Nome) SELECT 33, 'Infiniti'     WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Infiniti');
+INSERT INTO Marcas (Id, Nome) SELECT 34, 'Dodge'        WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Dodge');
+INSERT INTO Marcas (Id, Nome) SELECT 35, 'Chrysler'     WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Chrysler');
+INSERT INTO Marcas (Id, Nome) SELECT 36, 'Cadillac'     WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Cadillac');
+INSERT INTO Marcas (Id, Nome) SELECT 37, 'Lincoln'      WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Lincoln');
+INSERT INTO Marcas (Id, Nome) SELECT 38, 'Buick'        WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Buick');
+INSERT INTO Marcas (Id, Nome) SELECT 39, 'GMC'          WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'GMC');
+INSERT INTO Marcas (Id, Nome) SELECT 40, 'Ram'          WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Ram');
+INSERT INTO Marcas (Id, Nome) SELECT 41, 'Acura'        WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Acura');
+INSERT INTO Marcas (Id, Nome) SELECT 42, 'Genesis'      WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Genesis');
+INSERT INTO Marcas (Id, Nome) SELECT 43, 'Maserati'     WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Maserati');
+INSERT INTO Marcas (Id, Nome) SELECT 44, 'Ferrari'      WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Ferrari');
+INSERT INTO Marcas (Id, Nome) SELECT 45, 'Lamborghini'  WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Lamborghini');
+INSERT INTO Marcas (Id, Nome) SELECT 46, 'Bentley'      WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Bentley');
+INSERT INTO Marcas (Id, Nome) SELECT 47, 'Rolls-Royce'  WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Rolls-Royce');
+INSERT INTO Marcas (Id, Nome) SELECT 48, 'Aston Martin' WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Aston Martin');
+INSERT INTO Marcas (Id, Nome) SELECT 49, 'McLaren'      WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'McLaren');
+INSERT INTO Marcas (Id, Nome) SELECT 50, 'Bugatti'      WHERE NOT EXISTS (SELECT 1 FROM Marcas WHERE Nome = 'Bugatti');
+
+
+-- INSERIR MODELOS
+-- BMW (1)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Série 1', 1),
+('Série 2', 1),
+('Série 3', 1),
+('Série 4', 1),
+('Série 5', 1),
+('Série 6', 1),
+('Série 7', 1),
+('Série 8', 1),
+('X1', 1),
+('X2', 1),
+('X3', 1),
+('X4', 1),
+('X6', 1),
+('X7', 1),
+('Z4', 1),
+('i3', 1),
+('i4', 1),
+('iX', 1),
+('iX3', 1),
+('M2', 1),
+('M3', 1),
+('M4', 1),
+('M5', 1),
+('M8', 1);
+
+-- Audi (2)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('A1', 2),
+('A4', 2),
+('A5', 2),
+('A6', 2),
+('A7', 2),
+('A8', 2),
+('Q2', 2),
+('Q3', 2),
+('Q4 e-tron', 2),
+('Q5', 2),
+('Q7', 2),
+('Q8', 2),
+('e-tron', 2),
+('e-tron GT', 2),
+('TT', 2),
+('R8', 2),
+('RS3', 2),
+('RS4', 2),
+('RS5', 2),
+('RS6', 2),
+('RS7', 2),
+('RS Q8', 2);
+
+-- Mercedes-Benz (3)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Classe A', 3),
+('Classe B', 3),
+('Classe E', 3),
+('Classe S', 3),
+('CLA', 3),
+('CLS', 3),
+('GLA', 3),
+('GLB', 3),
+('GLC', 3),
+('GLE', 3),
+('GLS', 3),
+('EQA', 3),
+('EQB', 3),
+('EQC', 3),
+('EQE', 3),
+('EQS', 3),
+('AMG GT', 3),
+('Classe G', 3),
+('SL', 3),
+('V-Class', 3);
+
+-- Volkswagen (4)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Polo', 4),
+('Golf', 4),
+('Arteon', 4),
+('T-Cross', 4),
+('T-Roc', 4),
+('Tiguan', 4),
+('Touareg', 4),
+('ID.3', 4),
+('ID.4', 4),
+('ID.5', 4),
+('ID.7', 4),
+('ID. Buzz', 4),
+('Taigo', 4),
+('Touran', 4),
+('Sharan', 4),
+('Caddy', 4),
+('Transporter', 4),
+('Golf GTI', 4),
+('Golf R', 4);
+
+-- Mazda (5)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Mazda2', 5),
+('Mazda3', 5),
+('Mazda6', 5),
+('CX-3', 5),
+('CX-30', 5),
+('CX-60', 5),
+('CX-80', 5),
+('MX-5', 5),
+('MX-30', 5);
+
+-- Kia (6)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Picanto', 6),
+('Rio', 6),
+('Ceed', 6),
+('Proceed', 6),
+('Stonic', 6),
+('Niro', 6),
+('XCeed', 6),
+('Sorento', 6),
+('EV6', 6),
+('EV9', 6),
+('Carnival', 6);
+
+-- Seat (7)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Ibiza', 7),
+('Arona', 7),
+('Ateca', 7),
+('Tarraco', 7);
+
+-- Tesla (8)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Model S', 8),
+('Model X', 8),
+('Model Y', 8),
+('Cybertruck', 8);
+
+-- Jaguar (9)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('XE', 9),
+('XF', 9),
+('XJ', 9),
+('E-Pace', 9),
+('F-Pace', 9),
+('I-Pace', 9);
+
+-- Toyota (10)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Aygo X', 10),
+('Yaris', 10),
+('Corolla', 10),
+('Camry', 10),
+('Prius', 10),
+('C-HR', 10),
+('RAV4', 10),
+('Highlander', 10),
+('Land Cruiser', 10),
+('Hilux', 10),
+('Proace', 10),
+('bZ4X', 10),
+('GR86', 10),
+('GR Supra', 10),
+('Mirai', 10);
+
+-- Honda (11)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Jazz', 11),
+('Civic', 11),
+('Accord', 11),
+('HR-V', 11),
+('CR-V', 11),
+('ZR-V', 11),
+('e:Ny1', 11),
+('Civic Type R', 11);
+
+-- Ford (12)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Fiesta', 12),
+('Focus', 12),
+('Mondeo', 12),
+('Mustang', 12),
+('Puma', 12),
+('Kuga', 12),
+('Explorer', 12),
+('Edge', 12),
+('Bronco', 12),
+('Ranger', 12),
+('F-150', 12),
+('Mustang Mach-E', 12),
+('Tourneo', 12),
+('Transit', 12);
+
+-- Chevrolet (13)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Spark', 13),
+('Aveo', 13),
+('Cruze', 13),
+('Malibu', 13),
+('Camaro', 13),
+('Corvette', 13),
+('Trax', 13),
+('Equinox', 13),
+('Blazer', 13),
+('Tahoe', 13),
+('Suburban', 13),
+('Silverado', 13),
+('Bolt', 13);
+
+-- Nissan (14)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Micra', 14),
+('Leaf', 14),
+('Juke', 14),
+('Qashqai', 14),
+('X-Trail', 14),
+('Ariya', 14),
+('GT-R', 14),
+('Z', 14),
+('Townstar', 14),
+('Navara', 14);
+
+-- Hyundai (15)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('i10', 15),
+('i20', 15),
+('i30', 15),
+('Elantra', 15),
+('Ioniq', 15),
+('Bayon', 15),
+('Kona', 15),
+('Tucson', 15),
+('Santa Fe', 15),
+('Ioniq 5', 15),
+('Ioniq 6', 15),
+('Staria', 15),
+('i30 N', 15);
+
+-- Peugeot (16)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('108', 16),
+('208', 16),
+('308', 16),
+('408', 16),
+('508', 16),
+('2008', 16),
+('3008', 16),
+('5008', 16),
+('Rifter', 16),
+('Traveller', 16),
+('e-208', 16),
+('e-2008', 16);
+
+-- Renault (17)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Twingo', 17),
+('Clio', 17),
+('Megane', 17),
+('Captur', 17),
+('Kadjar', 17),
+('Arkana', 17),
+('Koleos', 17),
+('Zoe', 17),
+('Megane E-Tech', 17),
+('Kangoo', 17),
+('Trafic', 17),
+('Master', 17);
+
+-- Citroën (18)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('C1', 18),
+('C3', 18),
+('C4', 18),
+('C5 X', 18),
+('C3 Aircross', 18),
+('C5 Aircross', 18),
+('Berlingo', 18),
+('SpaceTourer', 18),
+('e-C4', 18);
+
+-- Fiat (19)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('500', 19),
+('Panda', 19),
+('Tipo', 19),
+('500X', 19),
+('500L', 19),
+('Doblo', 19),
+('Ducato', 19),
+('Punto', 19),
+('500e', 19);
+
+-- Opel (20)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Corsa', 20),
+('Astra', 20),
+('Insignia', 20),
+('Crossland', 20),
+('Mokka', 20),
+('Grandland', 20),
+('Combo', 20),
+('Vivaro', 20),
+('Corsa-e', 20);
+
+-- Volvo (21)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('V40', 21),
+('V60', 21),
+('V90', 21),
+('S60', 21),
+('S90', 21),
+('XC40', 21),
+('XC60', 21),
+('XC90', 21),
+('C40 Recharge', 21),
+('EX30', 21),
+('EX90', 21);
+
+-- Porsche (22)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('718 Boxster', 22),
+('718 Cayman', 22),
+('911', 22),
+('Taycan', 22),
+('Panamera', 22),
+('Macan', 22),
+('Cayenne', 22);
+
+-- Land Rover (23)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Defender', 23),
+('Discovery', 23),
+('Discovery Sport', 23),
+('Range Rover Evoque', 23),
+('Range Rover Velar', 23),
+('Range Rover Sport', 23),
+('Range Rover', 23);
+
+-- Jeep (24)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Renegade', 24),
+('Compass', 24),
+('Cherokee', 24),
+('Grand Cherokee', 24),
+('Wrangler', 24),
+('Gladiator', 24),
+('Avenger', 24);
+
+-- Subaru (25)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Impreza', 25),
+('XV', 25),
+('Forester', 25),
+('Outback', 25),
+('WRX', 25),
+('BRZ', 25),
+('Solterra', 25);
+
+-- Mitsubishi (26)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Space Star', 26),
+('Colt', 26),
+('Eclipse Cross', 26),
+('Outlander', 26),
+('ASX', 26),
+('L200', 26);
+
+-- Lexus (27)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('CT', 27),
+('IS', 27),
+('ES', 27),
+('LS', 27),
+('UX', 27),
+('NX', 27),
+('RX', 27),
+('LC', 27),
+('RZ', 27);
+
+-- Mini (28)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Mini 3 portas', 28),
+('Mini 5 portas', 28),
+('Mini Cabrio', 28),
+('Mini Clubman', 28),
+('Mini Countryman', 28),
+('Mini Electric', 28),
+('Mini JCW', 28);
+
+-- Skoda (29)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Fabia', 29),
+('Scala', 29),
+('Octavia', 29),
+('Superb', 29),
+('Kamiq', 29),
+('Karoq', 29),
+('Kodiaq', 29),
+('Enyaq', 29);
+
+-- Alfa Romeo (30)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('MiTo', 30),
+('Giulietta', 30),
+('Giulia', 30),
+('Stelvio', 30),
+('Tonale', 30);
+
+-- Dacia (31)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Sandero', 31),
+('Logan', 31),
+('Duster', 31),
+('Jogger', 31),
+('Spring', 31);
+
+-- Suzuki (32)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Ignis', 32),
+('Swift', 32),
+('Baleno', 32),
+('Vitara', 32),
+('S-Cross', 32),
+('Jimny', 32),
+('Across', 32);
+
+-- Infiniti (33)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Q30', 33),
+('Q50', 33),
+('Q60', 33),
+('QX30', 33),
+('QX50', 33),
+('QX55', 33),
+('QX60', 33),
+('QX80', 33);
+
+-- Dodge (34)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Challenger', 34),
+('Charger', 34),
+('Durango', 34),
+('Hornet', 34);
+
+-- Chrysler (35)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('300', 35),
+('Pacifica', 35),
+('Voyager', 35);
+
+-- Cadillac (36)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('CT4', 36),
+('CT5', 36),
+('XT4', 36),
+('XT5', 36),
+('XT6', 36),
+('Escalade', 36),
+('Lyriq', 36);
+
+-- Lincoln (37)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Corsair', 37),
+('Nautilus', 37),
+('Aviator', 37),
+('Navigator', 37);
+
+-- Buick (38)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Encore', 38),
+('Encore GX', 38),
+('Envision', 38),
+('Enclave', 38);
+
+-- GMC (39)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Terrain', 39),
+('Acadia', 39),
+('Yukon', 39),
+('Sierra', 39),
+('Canyon', 39),
+('Hummer EV', 39);
+
+-- Ram (40)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('1500', 40),
+('2500', 40),
+('3500', 40);
+
+-- Acura (41)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Integra', 41),
+('TLX', 41),
+('MDX', 41),
+('RDX', 41),
+('NSX', 41);
+
+-- Genesis (42)
+INSERT INTO Modelos ( Nome, MarcaId) VALUES
+('G70', 42),
+('G80', 42),
+('G90', 42),
+('GV60', 42),
+('GV70', 42),
+('GV80', 42),
+('Electrified GV70', 42);
+
+-- Maserati (43)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Ghibli', 43),
+('Quattroporte', 43),
+('Levante', 43),
+('MC20', 43),
+('Grecale', 43),
+('GranTurismo', 43),
+('GranCabrio', 43);
+
+-- Ferrari (44)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Roma', 44),
+('Portofino', 44),
+('296 GTB', 44),
+('F8 Tributo', 44),
+('SF90 Stradale', 44),
+('812 Superfast', 44),
+('Purosangue', 44);
+
+-- Lamborghini (45)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Huracán', 45),
+('Urus', 45),
+('Aventador', 45),
+('Revuelto', 45);
+
+-- Bentley (46)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Continental GT', 46),
+('Flying Spur', 46),
+('Bentayga', 46);
+
+-- Rolls-Royce (47)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Ghost', 47),
+('Phantom', 47),
+('Cullinan', 47),
+('Spectre', 47);
+
+-- Aston Martin (48)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Vantage', 48),
+('DB11', 48),
+('DB12', 48),
+('DBS', 48),
+('DBX', 48);
+
+-- McLaren (49)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('GT', 49),
+('Artura', 49),
+('720S', 49),
+('765LT', 49),
+('Elva', 49);
+
+-- Bugatti (50)
+INSERT INTO Modelos (Nome, MarcaId) VALUES
+('Chiron', 50),
+('Mistral', 50),
+('Bolide', 50);
+
+-- ============================================
+-- CONSULTAS DE VERIFICAÇÃO
+-- ============================================
+
+-- Total de marcas e modelos
+SELECT 
+    COUNT(DISTINCT Id) AS TotalMarcas
+FROM Marcas;
+
+SELECT 
+    COUNT(DISTINCT Id) AS TotalModelos
+FROM Modelos;
+
+-- Modelos por marca
+SELECT 
+    m.Nome AS Marca,
+    COUNT(mo.Id) AS NumeroModelos
+FROM Marcas m
+LEFT JOIN Modelos mo ON m.Id = mo.MarcaId
+GROUP BY m.Nome
+ORDER BY NumeroModelos DESC, m.Nome;
+
+-- Listagem completa
+SELECT 
+    m.Nome AS Marca,
+    mo.Nome AS Modelo
+FROM Modelos mo
+INNER JOIN Marcas m ON mo.MarcaId = m.Id
+ORDER BY m.Nome, mo.Nome;

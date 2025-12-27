@@ -11,15 +11,15 @@
 
     <ul class="menu-list">
         <li>
-            <a href="#" class="@(ViewContext.RouteData.Values["action"]?.ToString() == "MinhasReservas" ? "active" : "")">
-                <!-- SVG Minhas Reservas -->
+            <a asp-controller="Account" asp-action="UserMenuReservas"
+               class="@(ViewContext.RouteData.Values["action"]?.ToString() == "UserMenuReservas" ? "active" : "")">
                 Minhas Reservas
             </a>
         </li>
 
         <li>
-            <a href="#" class="@(ViewContext.RouteData.Values["action"]?.ToString() == "MinhasCompras" ? "active" : "")">
-                <!-- SVG Compras -->
+            <a asp-controller="Comprador" asp-action="MinhasCompras"
+               class="@(ViewContext.RouteData.Values["action"]?.ToString() == "MinhasCompras" ? "active" : "")">
                 Compras
             </a>
         </li>

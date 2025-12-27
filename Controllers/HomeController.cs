@@ -18,15 +18,15 @@ namespace AutoMarket.Controllers
 
         public IActionResult Index()
         {
-            ViewBag.Marcas = _context.Anuncios
-                .Include(a => a.Modelo).ThenInclude(m => m.Marca)
-                .Select(a => a.Modelo.Marca.Nome)
-                .Distinct().OrderBy(m => m).ToList();
+            ViewBag.Marcas = _context.Marcas
+                .OrderBy(m => m.Nome)
+                .Select(m => m.Nome)
+                .ToList();
 
-            ViewBag.Modelos = _context.Anuncios
-                .Include(a => a.Modelo)
-                .Select(a => a.Modelo.Nome)
-                .Distinct().OrderBy(m => m).ToList();
+            ViewBag.Modelos = _context.Modelos
+                .OrderBy(m => m.Nome)
+                .Select(m => m.Nome)
+                .ToList();
 
             ViewBag.Categorias = _context.Anuncios
                 .Select(a => a.Categoria)
@@ -47,6 +47,7 @@ namespace AutoMarket.Controllers
             ViewBag.Localizacoes = _context.Anuncios
                 .Select(a => a.Localizacao)
                 .Distinct().OrderBy(l => l).ToList();
+
 
             if (User.Identity.IsAuthenticated)
             {

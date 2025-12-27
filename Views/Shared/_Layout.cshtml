@@ -16,9 +16,15 @@
 <body class="@(User.IsInRole("Admin") ? "admin" : "")">
     <header>
         <a asp-controller="Home" asp-action="Index" class="logo">
-            @(User.IsInRole("Admin") ? "AutoMarketAdmin" : "AutoMarket")
+            @if (User.IsInRole("Admin"))
+            {
+                @:AutoMarketAdmin
+            }
+            else
+            {
+                <img src="~/img/automarket_logo.png" alt="AutoMarket" style="height: 40px;" />
+            }
         </a>
-
         <nav>
             <a asp-controller="Search" asp-action="SearchResults">Comprar</a>
             <a asp-controller="Home" asp-action="About">Sobre</a>

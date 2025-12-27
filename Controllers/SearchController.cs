@@ -50,8 +50,10 @@ namespace AutoMarket.Controllers
             var anuncios = await query.ToListAsync();
 
             // Filtros dinâmicos continuam funcionando
-            ViewBag.Marcas = await _context.Anuncios.Include(a => a.Modelo).ThenInclude(m => m.Marca)
-                               .Select(a => a.Modelo.Marca.Nome).Distinct().ToListAsync();
+            ViewBag.Marcas = await _context.Marcas
+                .OrderBy(m => m.Nome)
+                .Select(m => m.Nome)
+                .ToListAsync();
             ViewBag.Modelos = await _context.Anuncios.Select(a => a.Modelo.Nome).Distinct().ToListAsync();
             ViewBag.Categorias = await _context.Anuncios.Select(a => a.Categoria).Distinct().ToListAsync();
             ViewBag.Anos = await _context.Anuncios.Select(a => a.Ano).Distinct().ToListAsync();
@@ -77,23 +79,24 @@ namespace AutoMarket.Controllers
 
             // Se estiver logado, verificar favoritos
             bool isFavorito = false;
-
             if (User.Identity?.IsAuthenticated ?? false)
             {
                 var userEmail = User.Identity?.Name;
-
-                var comprador = _context.Compradores
-                    .FirstOrDefault(c => c.Utilizador.Email == userEmail);
-
+                var comprador = _context.Compradores.FirstOrDefault(c => c.Utilizador.Email == userEmail);
                 if (comprador != null)
                 {
-                    isFavorito = _context.Favoritos
-                        .Any(f => f.CompradorId == comprador.Id && f.AnuncioId == anuncio.Id);
+                    isFavorito = _context.Favoritos.Any(f => f.CompradorId == comprador.Id && f.AnuncioId == anuncio.Id);
                 }
             }
 
+            // Verificar se existe alguma reserva ativa
+            var reservaAtiva = _context.Reservas
+                .Where(r => r.AnuncioId == id && (r.Estado == "Reservado" || r.Estado == "Comprado"))
+                .FirstOrDefault();
+
             ViewBag.IsFavorito = isFavorito;
             ViewBag.GoogleMapsApiKey = _config.GetValue<string>("GoogleMaps:ApiKey");
+            ViewBag.ReservaAtiva = reservaAtiva;
 
             return View(anuncio);
         }
@@ -105,11 +108,10 @@ namespace AutoMarket.Controllers
             if (string.IsNullOrEmpty(marca))
                 return Json(new List<string>());
 
-            var modelos = await _context.Anuncios
-                .Include(a => a.Modelo)
-                    .ThenInclude(m => m.Marca)
-                .Where(a => a.Modelo.Marca.Nome == marca)
-                .Select(a => a.Modelo.Nome)
+            var modelos = await _context.Modelos
+                .Include(m => m.Marca)
+                .Where(m => m.Marca.Nome == marca)
+                .Select(m => m.Nome)
                 .Distinct()
                 .OrderBy(m => m)
                 .ToListAsync();

@@ -3,23 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ativação de Conta - AutoMarket</title>
+    <title>Reserva Aprovada - AutoMarket</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f9;
-            color: #333;
             margin: 0;
             padding: 0;
+            color: #333;
         }
 
         .container {
             max-width: 600px;
             margin: 30px auto;
             padding: 20px;
-            background-color: #ffffff;
+            background-color: #fff;
             border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
         .header {
@@ -40,7 +40,6 @@
         .content {
             padding: 30px;
             line-height: 1.6;
-            color: #555;
             text-align: center;
         }
 
@@ -60,31 +59,36 @@
             font-size: 12px;
             color: #999;
             text-align: center;
-            border-bottom-left-radius: 8px;
-            border-bottom-right-radius: 8px;
-            background-color: #f4f4f9;
+            border-top: 1px solid #eee;
+        }
+
+        .btn {
+            display: inline-block;
+            margin: 20px auto;
+            padding: 15px 30px;
+            font-size: 16px;
+            color: white;
+            background-color: rgb(241,90,36);
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: bold;
+            box-shadow: 0px 4px 8px rgba(255,140,0,0.3);
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Cabeçalho -->
         <div class="header">
             <h1>AutoMarket</h1>
         </div>
-
-        <!-- Conteúdo -->
         <div class="content">
-            <h2>Bem-vindo(a), {{Nome}}!</h2>
-            <p>Para ativares a tua conta na AutoMarket, clique no botão abaixo.</p>
-            <a href="{{AtivacaoUrl}}" style="display:inline-block;margin:20px auto;padding:15px 30px;font-size:16px;color:white;background-color:rgb(241,90,36);text-decoration:none;border-radius:30px;font-weight:bold;box-shadow:0px 4px 8px rgba(255,140,0,0.3);" target="_blank">Ativar Conta</a>
-            <p>Se o botão acima não funcionar, copia e cola o link abaixo no teu navegador:</p>
-            <a href="{{AtivacaoUrl}}" style="color:#6a1b9a;text-decoration:underline;font-size:14px;" target="_blank">{{AtivacaoUrl}}</a>
+            <h2>Olá {{Nome}}!</h2>
+            <p>Boas notícias! Sua reserva do veículo <strong>{{Veiculo}}</strong> foi <strong>aprovada</strong> pelo vendedor.</p>
+            <p>Detalhes da reserva:</p>
+            <p>Data: {{Data}}<br>Hora: {{Hora}}<br>Local: {{Local}}</p>
         </div>
-
-        <!-- Rodapé -->
         <div class="footer">
-            <p>Se não solicitaste a criação desta conta, ignora este email.</p>
+            <p>Se não solicitou esta reserva, por favor contacte o suporte.</p>
             <p>&copy; 2025 AutoMarket. Todos os direitos reservados.</p>
         </div>
     </div>

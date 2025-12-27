@@ -94,7 +94,7 @@ namespace AutoMarket.Controllers
                 // Processar e salvar imagens
                 if (viewModel.Imagens != null && viewModel.Imagens.Any())
                 {
-                    var uploadsFolder = Path.Combine(_environment.WebRootPath, "images", "anuncios");
+                    var uploadsFolder = Path.Combine(_environment.WebRootPath, "img", "Anuncios");
 
                     // Criar pasta se não existir
                     if (!Directory.Exists(uploadsFolder))
@@ -138,7 +138,7 @@ namespace AutoMarket.Controllers
                 }
 
                 TempData["Success"] = "Anúncio criado com sucesso!";
-                return RedirectToAction("Details", new { id = anuncio.Id });
+                return RedirectToAction("ResultsInformationCar", "Search", new { id = anuncio.Id });
             }
             catch (Exception ex)
             {
