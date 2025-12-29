@@ -2,6 +2,14 @@
 
 @{
     ViewData["Title"] = $"{Model.Modelo?.Marca?.Nome ?? "Marca"} {Model.Modelo?.Nome ?? "Modelo"} - AutoMarket";
+    var reservaAtiva = ViewBag.ReservaAtiva;
+    string estadoReserva = reservaAtiva?.Estado?.Trim() ?? "";
+    bool estaPago = estadoReserva.Equals("Pago", StringComparison.OrdinalIgnoreCase);
+    bool estaReservado = estadoReserva.Equals("Reservado", StringComparison.OrdinalIgnoreCase);
+    bool estaDisponivel = string.IsNullOrEmpty(estadoReserva) ||
+                          estadoReserva.Equals("Disponivel", StringComparison.OrdinalIgnoreCase) ||
+                          estadoReserva.Equals("Disponível", StringComparison.OrdinalIgnoreCase);
+
 }
 
 @section Styles {
@@ -203,21 +211,33 @@
         <!-- Botão de reservar veículo -->
         @if (User.Identity?.IsAuthenticated ?? false)
         {
-            if (ViewBag.ReservaAtiva == null)
+            if (estaPago)
+            {
+                <div class="vehicle-status-card sold">
+                    <div class="status-icon">💰</div>
+                    <div class="status-info">
+                        <strong>Veículo Vendido</strong>
+                        <span>Este veículo já não está disponível</span>
+                    </div>
+                </div>
+            }
+            else if (estaReservado)
+            {
+                <div class="vehicle-status-card reserved">
+                    <div class="status-icon">🔒</div>
+                    <div class="status-info">
+                        <strong>Veículo Reservado</strong>
+                        <span>Este veículo já não está disponível</span>
+                    </div>
+                </div>
+            }
+            else if (estaDisponivel)
             {
                 <form id="formReservar" method="post">
                     @Html.AntiForgeryToken()
                     <input type="hidden" id="anuncioId" name="anuncioId" value="@Model.Id" />
-                    <button type="submit" id="btnReservar" class="btn-reservar">
-                        🔒 Reservar Veículo
-                    </button>
+                    <button type="submit" id="btnReservar" class="btn-reservar">🔒 Reservar Veículo</button>
                 </form>
-            }
-            else
-            {
-                <div class="vehicle-status @(ViewBag.ReservaAtiva.Estado.ToLower())">
-                    Veículo @ViewBag.ReservaAtiva.Estado
-                </div>
             }
         }
 
@@ -250,14 +270,25 @@
                     Falar no WhatsApp
                 </a>
             </div>
-
-            <button class="btn-visit" onclick="agendarVisita()">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="4" width="18" height="18" rx="2" />
-                    <path d="M16 2v4M8 2v4M3 10h18" />
-                </svg>
-                Agendar Visita
-            </button>
+            @if (User.Identity?.IsAuthenticated ?? false)
+            {
+                if (estaDisponivel)
+                {
+                    <button class="btn-visit" onclick="agendarVisita()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="4" width="18" height="18" rx="2" />
+                            <path d="M16 2v4M8 2v4M3 10h18" />
+                        </svg>
+                        Agendar Visita
+                    </button>
+                }
+                else
+                {
+                    <button class="btn-visit" disabled>
+                        Visitas Indisponíveis
+                    </button>
+                }
+            }
 
             <div class="seller-info">
                 <div class="seller-avatar">
@@ -375,14 +406,27 @@
         }
 
         function agendarVisita() {
+                    var estaPago = @(estaPago.ToString().ToLower());
+        var estaReservado = @(estaReservado.ToString().ToLower());
             var isAuthenticated = @((User.Identity?.IsAuthenticated ?? false).ToString().ToLower());
             if (!isAuthenticated) {
                 openGenericPopup("Faça login para agendar uma visita a este veículo.");
-            } else if ("@Model.Estado" !== "Disponivel") {
-                alert("Veículo não disponível para visitas no momento.");
-            } else {
-                window.location.href = '/Visits/BookVisit?id=@Model.Id';
+                return;
             }
+
+                    if (estaPago || estaReservado) {
+            alert("Veículo não disponível para visitas no momento.");
+            return;
+        }
+
+            var reservaAtivaEstado = "@(ViewBag.ReservaAtiva?.Estado ?? "Disponivel")";
+
+            if (reservaAtivaEstado !== "Disponivel") {
+                alert("Veículo não disponível para visitas no momento.");
+                return;
+            }
+
+            window.location.href = '/Visits/BookVisit?id=@Model.Id';
         }
 
         function showContact() {

@@ -152,28 +152,43 @@
             <div class="results-count">
                 <h1>Encontrados <span class="count-highlight">@Model.Count()</span> resultados</h1>
             </div>
-            <div class="sort-bar">
-                <label for="sort">Ordenar:</label>
-                <select id="sort" name="sort">
-                    <option value="recentes">Mais recentes</option>
-                    <option value="precoAsc">Menor preço</option>
-                    <option value="precoDesc">Maior preço</option>
-                    <option value="quilometragem">Quilometragem</option>
-                </select>
-            </div>
+    <div class="sort-bar">
+        <form method="get" asp-action="SearchResults" asp-controller="Search">
+            <!-- manter filtros ativos -->
+            <input type="hidden" name="marca" value="@Context.Request.Query["marca"]" />
+            <input type="hidden" name="modelo" value="@Context.Request.Query["modelo"]" />
+            <input type="hidden" name="categoria" value="@Context.Request.Query["categoria"]" />
+            <input type="hidden" name="ano" value="@Context.Request.Query["ano"]" />
+            <input type="hidden" name="combustivel" value="@Context.Request.Query["combustivel"]" />
+            <input type="hidden" name="caixa" value="@Context.Request.Query["caixa"]" />
+            <input type="hidden" name="localizacao" value="@Context.Request.Query["localizacao"]" />
+
+            <label for="ordenar">Ordenar:</label>
+                @{
+                    string ordenarAtual = ViewBag.OrdenarAtual as string ?? "recentes";
+                }
+                    <select id="ordenar" name="ordenar" onchange="this.form.submit()">
+                        <option value="recentes" selected="@(ordenarAtual == "recentes")">Mais recentes</option>
+                        <option value="preco_asc" selected="@(ordenarAtual == "preco_asc")">Menor preço</option>
+                        <option value="preco_desc" selected="@(ordenarAtual == "preco_desc")">Maior preço</option>
+                        <option value="ano_desc" selected="@(ordenarAtual == "ano_desc")">Ano mais recente</option>
+                        <option value="ano_asc" selected="@(ordenarAtual == "ano_asc")">Ano mais antigo</option>
+                    </select>
+        </form>
+    </div>
         </div>
 
         <div class="cars-grid">
             @foreach (var anuncio in Model)
             {
-                <article class="car-card" onclick="window.location.href='@Url.Action("ResultsInformationCar", "Search", new { id = anuncio.Id })'">
+                <article class="car-card @(anuncio.Reservas?.Any(r => r.Estado == "Pago") == true ? "sold" : "")"
+                         onclick="window.location.href='@Url.Action("ResultsInformationCar", "Search", new { id = anuncio.Id })'">
                     <div class="car-image-container">
                         <img src="@(anuncio.Imagens?.FirstOrDefault()?.UrlImagem)"
                              class="car-image"
                              alt="@($"{anuncio.Modelo.Marca.Nome} {anuncio.Modelo.Nome}")" />
                         <div class="car-badge">@anuncio.Ano</div>
                     </div>
-
                     <div class="car-content">
                         <div class="car-header">
                             <h2 class="car-title">@anuncio.Modelo.Marca.Nome</h2>

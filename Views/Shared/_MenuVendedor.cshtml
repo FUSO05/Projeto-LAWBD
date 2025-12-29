@@ -12,7 +12,7 @@
         <!-- ====================== OPÇÕES DE VENDEDOR ====================== -->
 
         <li>
-            <a asp-controller="Vendedor" asp-action="MeusAnuncios" class="@(ViewContext.RouteData.Values["action"].ToString() == "MeusAnuncios" ? "active" : "")">
+            <a asp-controller="Account" asp-action="VendedorMenuAnuncios" class="@(ViewContext.RouteData.Values["action"].ToString() == "VendedorMenuAnuncios" ? "active" : "")">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="3" y="4" width="18" height="18" rx="2" />
                     <path d="M16 2v4M8 2v4M3 10h18" />
@@ -88,7 +88,7 @@
         </li>
 
         <li>
-            <a asp-controller="Comprador" asp-action="MinhasCompras" class="@(ViewContext.RouteData.Values["action"].ToString() == "MinhasCompras" ? "active" : "")">
+            <a asp-controller="Account" asp-action="UserMenuCompras" class="@(ViewContext.RouteData.Values["action"].ToString() == "UserMenuCompras" ? "active" : "")">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                     <circle cx="12" cy="10" r="3" />

@@ -1,0 +1,174 @@
+﻿@using AutoMarket.Models.ViewModels
+@model EditAnuncioViewModel
+
+@{
+    ViewData["Title"] = "Editar Anúncio - AutoMarket";
+    Layout = "_Layout";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/createanuncio.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+}
+
+<main class="main-container">
+    <!-- HEADER -->
+    <div class="page-header">
+        <h1>Editar Anúncio</h1>
+        <p>Atualize as informações do seu veículo</p>
+    </div>
+
+    <!-- PROGRESS (apenas visual) -->
+    <div class="progress-container">
+        <div class="progress-steps">
+            <div class="step completed">
+                <div class="step-circle">✓</div>
+                <span class="step-label">Criado</span>
+                <div class="step-line"></div>
+            </div>
+            <div class="step active">
+                <div class="step-circle">2</div>
+                <span class="step-label">Editar</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- FORM LAYOUT -->
+    <div class="form-layout">
+        <div class="form-section">
+            <form asp-action="Edit" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="form-grid">
+
+                    <!-- TÍTULO -->
+                    <div class="form-group full-width">
+                        <label asp-for="Titulo">Título do Anúncio</label>
+                        <input asp-for="Titulo" class="form-control"
+                               placeholder="Ex: Audi A4 2021 em excelente estado" />
+                        <span asp-validation-for="Titulo" class="text-danger"></span>
+                    </div>
+
+                    <!-- PREÇO -->
+                    <div class="form-group">
+                        <label asp-for="Preco">Preço (€)</label>
+                        <input asp-for="Preco" type="number" step="0.01"
+                               class="form-control" />
+                        <span asp-validation-for="Preco" class="text-danger"></span>
+                    </div>
+
+                    <!-- ANO -->
+                    <div class="form-group">
+                        <label asp-for="Ano">Ano</label>
+                        <input asp-for="Ano" type="number"
+                               class="form-control" />
+                        <span asp-validation-for="Ano" class="text-danger"></span>
+                    </div>
+
+                    <!-- CAIXA -->
+                    <div class="form-group">
+                        <label asp-for="Caixa">Caixa de Velocidades</label>
+                        <select asp-for="Caixa" class="form-control">
+                            <option value="Manual">Manual</option>
+                            <option value="Automática">Automática</option>
+                        </select>
+                        <span asp-validation-for="Caixa" class="text-danger"></span>
+                    </div>
+
+                    <!-- COMBUSTÍVEL -->
+                    <div class="form-group">
+                        <label asp-for="Combustivel">Combustível</label>
+                        <select asp-for="Combustivel" class="form-control">
+                            <option value="Gasolina">Gasolina</option>
+                            <option value="Diesel">Diesel</option>
+                            <option value="Elétrico">Elétrico</option>
+                            <option value="Híbrido">Híbrido</option>
+                        </select>
+                        <span asp-validation-for="Combustivel" class="text-danger"></span>
+                    </div>
+
+                    <!-- CATEGORIA -->
+                    <div class="form-group">
+                        <label asp-for="Categoria">Categoria</label>
+                        <select asp-for="Categoria" class="form-control">
+                            <option value="Sedan">Sedan</option>
+                            <option value="SUV">SUV</option>
+                            <option value="Hatchback">Hatchback</option>
+                            <option value="Coupé">Coupé</option>
+                            <option value="Van">Van</option>
+                            <option value="Pickup">Pickup</option>
+                            <option value="Carrinha">Carrinha</option>
+                        </select>
+                        <span asp-validation-for="Categoria" class="text-danger"></span>
+                    </div>
+
+                    <!-- COR -->
+                    <div class="form-group">
+                        <label asp-for="Cor">Cor</label>
+                        <input asp-for="Cor" class="form-control" />
+                        <span asp-validation-for="Cor" class="text-danger"></span>
+                    </div>
+
+                    <!-- LOCALIZAÇÃO -->
+                    <div class="form-group full-width">
+                        <label asp-for="Localizacao">Localização</label>
+                        <input asp-for="Localizacao" class="form-control" />
+                        <span asp-validation-for="Localizacao" class="text-danger"></span>
+                    </div>
+
+                    <!-- DEFEITO -->
+                    <div class="form-group full-width">
+                        <label asp-for="Defeito">Defeito (se houver)</label>
+                        <textarea asp-for="Defeito"
+                                  class="form-control"
+                                  rows="3"></textarea>
+                        <span asp-validation-for="Defeito" class="text-danger"></span>
+                    </div>
+
+                    <!-- DESCRIÇÃO -->
+                    <div class="form-group full-width">
+                        <label asp-for="Descricao">Descrição Detalhada</label>
+                        <textarea asp-for="Descricao"
+                                  class="form-control"
+                                  rows="5"></textarea>
+                        <span asp-validation-for="Descricao" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    💾 Guardar Alterações
+                </button>
+            </form>
+        </div>
+
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="sidebar-card">
+                <h4>ℹ️ Dicas</h4>
+                <ul>
+                    <li>Mantenha o preço competitivo</li>
+                    <li>Atualize a descrição se algo mudou</li>
+                    <li>Seja transparente com defeitos</li>
+                    <li>Anúncios atualizados vendem mais rápido</li>
+                </ul>
+            </div>
+
+            <div class="sidebar-card">
+                <h4>🔒 Aviso</h4>
+                <p>
+                    Não é possível editar anúncios que já tenham
+                    uma reserva <strong>paga</strong>.
+                </p>
+            </div>
+        </div>
+    </div>
+</main>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,6 +1,6 @@
 ﻿@model AutoMarket.Models.ViewModels.VisitasViewModel
 @{
-    ViewData["Title"] = "Área de Comprador - Visitas";
+    ViewData["Title"] = "Histórico de Visitas";
 }
 
 @section Styles {
@@ -9,10 +9,6 @@
 }
 
 <main class="visits-container">
-    <form style="display:none;">
-        @Html.AntiForgeryToken()
-    </form>
-
     <aside class="sidebar">
         @if (Model.UtilizadorViewModel.TipoUser == "Vendedor")
         {
@@ -34,23 +30,22 @@
                     <line x1="3" y1="10" x2="21" y2="10" />
                 </svg>
                 <div>
-                    <h2>Minhas Visitas Agendadas</h2>
+                    <h2>Histórico de Visitas</h2>
                     @if (Model != null && Model.Visitas != null && Model.Visitas.Any())
                     {
-                        <p>@Model.Visitas.Count() @(Model.Visitas.Count() == 1 ? "visita agendada" : "visitas agendadas")</p>
+                        <p>@Model.Visitas.Count() @(Model.Visitas.Count() == 1 ? "visita" : "visitas") registadas</p>
                     }
                     else
                     {
-                        <p>Nenhuma visita agendada</p>
+                        <p>Nenhuma visita registrada</p>
                     }
                 </div>
             </div>
-            <a href="@Url.Action("UserMenuHistorico", "Account")" class="btn-historico">
+            <a href="@Url.Action("UserMenuVisitas", "Account")" class="btn-historico">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <polyline points="12 6 12 12 16 14" />
+                    <path d="M15 18l-6-6 6-6" />
                 </svg>
-                Histórico
+                Voltar
             </a>
         </div>
 
@@ -66,15 +61,7 @@
                             <line x1="3" y1="10" x2="21" y2="10" />
                         </svg>
                     </div>
-                    <h3>Ainda não tem visitas agendadas</h3>
-                    <p>Explore os nossos anúncios e agende uma visita para conhecer o veículo que deseja pessoalmente</p>
-                    <a href="/Search/SearchResults" class="btn-browse">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="11" cy="11" r="8" />
-                            <path d="m21 21-4.35-4.35" />
-                        </svg>
-                        Explorar Veículos
-                    </a>
+                    <h3>Nenhuma visita registrada</h3>
                 </div>
             }
             else
@@ -87,11 +74,11 @@
                                  alt="@visita.Anuncio.Modelo?.Nome" class="visit-image" />
                             <div class="visit-status-badge status-@visita.Estado.ToLower()">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    @if (visita.Estado == "Agendada")
+                                    @if (visita.Estado == "Confirmada")
                                     {
                                         <polyline points="20 6 9 17 4 12" />
                                     }
-                                    else if (visita.Estado == "Cancelada")
+                                    else if (visita.Estado == "Recusada")
                                     {
                                         <line x1="18" y1="6" x2="6" y2="18" />
                                         <line x1="6" y1="6" x2="18" y2="18" />
@@ -120,36 +107,16 @@
 
                                 <div class="visit-datetime">
                                     <div class="datetime-item">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                                            <line x1="16" y1="2" x2="16" y2="6" />
-                                            <line x1="8" y1="2" x2="8" y2="6" />
-                                            <line x1="3" y1="10" x2="21" y2="10" />
-                                        </svg>
-                                        <div>
-                                            <span class="label">Data</span>
-                                            <span class="value">@visita.DataHoraReserva.ToString("dd/MM/yyyy")</span>
-                                        </div>
+                                        <span class="label">Data</span>
+                                        <span class="value">@visita.DataHoraReserva.ToString("dd/MM/yyyy")</span>
                                     </div>
                                     <div class="datetime-item">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <circle cx="12" cy="12" r="10" />
-                                            <polyline points="12 6 12 12 16 14" />
-                                        </svg>
-                                        <div>
-                                            <span class="label">Hora</span>
-                                            <span class="value">@visita.DataHoraReserva.ToString("HH:mm")</span>
-                                        </div>
+                                        <span class="label">Hora</span>
+                                        <span class="value">@visita.DataHoraReserva.ToString("HH:mm")</span>
                                     </div>
                                     <div class="datetime-item">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                                            <circle cx="12" cy="10" r="3" />
-                                        </svg>
-                                        <div>
-                                            <span class="label">Local</span>
-                                            <span class="value">@(visita.Anuncio.Localizacao ?? "N/A")</span>
-                                        </div>
+                                        <span class="label">Local</span>
+                                        <span class="value">@(visita.Anuncio.Localizacao ?? "N/A")</span>
                                     </div>
                                 </div>
                             </div>
@@ -162,20 +129,6 @@
                                     </svg>
                                     Ver
                                 </a>
-                                <button class="btn-action btn-reschedule" onclick="reagendar(@visita.Id)">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polyline points="23 4 23 10 17 10" />
-                                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
-                                    </svg>
-                                    Reagendar
-                                </button>
-                                <button class="btn-action btn-cancel" onclick="cancelar(@visita.Id)">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <line x1="18" y1="6" x2="6" y2="18" />
-                                        <line x1="6" y1="6" x2="18" y2="18" />
-                                    </svg>
-                                    Cancelar
-                                </button>
                             </div>
                         </div>
                     </article>
@@ -184,25 +137,3 @@
         </div>
     </section>
 </main>
-
-@section Scripts {
-    <script>
-        function cancelar(reservaId) {
-            if (!confirm('Tem certeza que deseja cancelar esta visita?')) return;
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `/Account/Cancelar/${reservaId}`;
-            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = '__RequestVerificationToken';
-            input.value = token;
-            form.appendChild(input);
-            document.body.appendChild(form);
-            form.submit();
-        }
-        function reagendar(reservaId) {
-            window.location.href = `/Account/Reagendar/${reservaId}`;
-        }
-    </script>
-}

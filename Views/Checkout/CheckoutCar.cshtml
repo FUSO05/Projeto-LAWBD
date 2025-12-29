@@ -1,0 +1,91 @@
+﻿@model CheckoutCarViewModel
+@{
+    ViewData["Title"] = "Checkout";
+    Layout = "_Layout";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/checkoutcar.css" />
+}
+
+<div class="checkout-container">
+    <h2>
+        <i class="fas fa-car-side"></i>
+        Finalizar Locação
+    </h2>
+
+    <!-- Resumo compacto -->
+    <div class="checkout-summary">
+        <p><strong>Veículo:</strong> <span>@Model.Veiculo</span></p>
+        <p class="price-line"><strong>Total a pagar:</strong> <span class="price">@Model.Preco.ToString("C")</span></p>
+    </div>
+
+    <form asp-action="CheckoutCar" method="post" class="checkout-form">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="ReservaId" />
+        <input type="hidden" asp-for="Veiculo" />
+        <input type="hidden" asp-for="Preco" />
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="validation-summary">
+                @Html.ValidationSummary()
+            </div>
+        }
+
+        <div class="form-header">
+            <i class="fas fa-credit-card"></i>
+            <h3>Pagamento com Cartão</h3>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="NomeTitular">Nome do Titular</label>
+            <input asp-for="NomeTitular" placeholder="Como no cartão" />
+            <span asp-validation-for="NomeTitular" class="validation-error"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="NumeroCartao">Número do Cartão</label>
+            <div class="input-with-icon">
+                <input asp-for="NumeroCartao" placeholder="1234 5678 9012 3456" />
+                <i class="fas fa-credit-card icon-inside"></i>
+            </div>
+            <span asp-validation-for="NumeroCartao" class="validation-error"></span>
+        </div>
+
+        <div class="card-row">
+            <div class="form-group">
+                <label asp-for="Validade">Validade</label>
+                <input asp-for="Validade" placeholder="MM/AA" />
+                <span asp-validation-for="Validade" class="validation-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="CVV">CVV</label>
+                <div class="input-with-icon">
+                    <input asp-for="CVV" type="password" placeholder="123" maxlength="4" />
+                    <i class="fas fa-lock icon-inside"></i>
+                </div>
+                <span asp-validation-for="CVV" class="validation-error"></span>
+            </div>
+        </div>
+
+        <div class="security-badge compact">
+            <i class="fas fa-shield-alt"></i>
+            <span>Pagamento seguro • SSL</span>
+        </div>
+
+        <button type="submit" class="btn-checkout">
+            <i class="fas fa-lock"></i>
+            Pagar @Model.Preco.ToString("C")
+        </button>
+
+        <div class="payment-icons compact">
+            <i class="fab fa-cc-visa"></i>
+            <i class="fab fa-cc-mastercard"></i>
+            <i class="fab fa-cc-amex"></i>
+            <i class="fas fa-credit-card"></i>
+        </div>
+    </form>
+</div>

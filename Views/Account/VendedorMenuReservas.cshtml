@@ -33,6 +33,13 @@
                     <p>@(Model.Reservas?.Count() ?? 0) @(Model.Reservas?.Count() == 1 ? "reserva" : "reservas")</p>
                 </div>
             </div>
+            <a href="@Url.Action("VendedorMenuHistoricoReservas", "Account")" class="btn-historico">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                </svg>
+                Histórico
+            </a>
         </div>
 
         <div class="reservas-list">
@@ -88,16 +95,18 @@
                                         <span class="value">@reserva.Comprador?.Utilizador?.Email</span>
                                     </div>
                                 </div>
-
-                                <div class="reserva-info-extra">
-                                    <div class="info-item">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <circle cx="12" cy="12" r="10" />
-                                            <polyline points="12 6 12 12 16 14" />
-                                        </svg>
-                                        <span>Expira em: @(reserva.PrazoExpiracao?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</span>
+                                @if (reserva.Estado == "Pendente")
+                                {
+                                    <div class="reserva-info-extra">
+                                        <div class="info-item">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10" />
+                                                <polyline points="12 6 12 12 16 14" />
+                                            </svg>
+                                            <span>Expira em: @(reserva.PrazoExpiracao?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</span>
+                                        </div>
                                     </div>
-                                </div>
+                                }
                             </div>
 
                             <div class="reserva-actions">
@@ -108,25 +117,24 @@
                                     </svg>
                                     Ver
                                 </a>
-
-                                @if (reserva.Estado == "Pendente")
-                                {
-                                    <button class="btn-action btn-approve" onclick="aprovarReserva(@reserva.Id)">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <polyline points="20 6 9 17 4 12" />
-                                        </svg>
-                                        Aprovar
-                                    </button>
-
-                                    <button class="btn-action btn-reject" onclick="recusarReserva(@reserva.Id)">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <line x1="18" y1="6" x2="6" y2="18" />
-                                            <line x1="6" y1="6" x2="18" y2="18" />
-                                        </svg>
-                                        Recusar
-                                    </button>
-                                }
                             </div>
+                            @if (reserva.Estado == "Pendente")
+                            {
+                                <button type="button" class="btn-action btn-confirm" onclick="aprovarReserva(@reserva.Id)" style="background-color: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="20 6 9 17 4 12" />
+                                    </svg>
+                                    Aceitar
+                                </button>
+
+                                <button type="button" class="btn-action btn-reject" onclick="recusarReserva(@reserva.Id)" style="background-color: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="18" y1="6" x2="6" y2="18" />
+                                        <line x1="6" y1="6" x2="18" y2="18" />
+                                    </svg>
+                                    Recusar
+                                </button>
+                            }
                         </div>
                     </article>
                 }

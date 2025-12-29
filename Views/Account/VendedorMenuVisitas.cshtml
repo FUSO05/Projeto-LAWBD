@@ -38,7 +38,7 @@
                     }
                 </div>
             </div>
-            <a href="@Url.Action("HistoricoVisitasVendedor", "Account")" class="btn-historico">
+            <a href="@Url.Action("VendedorMenuHistorico", "Account")" class="btn-historico">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="10" />
                     <polyline points="12 6 12 12 16 14" />
@@ -73,7 +73,7 @@
                                  alt="@visita.Anuncio.Modelo?.Nome" class="visit-image" />
                             <div class="visit-status-badge status-@visita.Estado.ToLower()">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    @if (visita.Estado == "Agendada")
+                                    @if (visita.Estado == "Pendente")
                                     {
                                         <polyline points="20 6 9 17 4 12" />
                                     }
@@ -149,19 +149,26 @@
                                 </div>
 
                                 <!-- Informações do Comprador -->
-                                <div class="buyer-info-compact">
-                                    <div class="buyer-detail">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                                            <circle cx="12" cy="7" r="4" />
-                                        </svg>
-                                        <span>@visita.Comprador?.Utilizador?.Nome</span>
+                                <div class="buyer-profile-box">
+                                    <div class="buyer-avatar">
+                                        @{
+                                            var nome = visita.Comprador?.Utilizador?.Nome ?? "U";
+                                            var inicial = nome.Substring(0, 1).ToUpper();
+                                        }
+                                        @inicial
                                     </div>
-                                    <div class="buyer-detail">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                                        </svg>
-                                        <span>@visita.Comprador?.Utilizador?.Contacto</span>
+                                    <div class="buyer-info-details">
+                                        <span class="buyer-label">Interessado</span>
+                                        <h4 class="buyer-name">@visita.Comprador?.Utilizador?.Nome</h4>
+                                        <div class="buyer-actions-inline">
+                                            <a href="tel:@visita.Comprador?.Utilizador?.Contacto" class="buyer-contact-item" title="Ligar">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                                                <span>@visita.Comprador?.Utilizador?.Contacto</span>
+                                            </a>
+                                            <a href="https://wa.me/@(visita.Comprador?.Utilizador?.Contacto?.Replace(" ", ""))" target="_blank" class="buyer-whatsapp" title="Enviar WhatsApp">
+                                                <small>WhatsApp</small>
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -174,7 +181,7 @@
                                     </svg>
                                     Ver Anúncio
                                 </a>
-                                @if (visita.Estado == "Agendada")
+                                @if (visita.Estado == "Pendente")
                                 {
                                     <button class="btn-action btn-confirm" onclick="confirmarVisita(@visita.Id)">
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

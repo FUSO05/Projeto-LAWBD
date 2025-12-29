@@ -18,51 +18,69 @@ namespace AutoMarket.Controllers
         // Página de resultados
         public async Task<IActionResult> SearchResults(
             string? marca, string? modelo, string? categoria,
-            int? ano, string? combustivel, string? caixa, string? localizacao)
+            int? ano, string? combustivel, string? caixa, string? localizacao,
+            string? ordenar 
+            )
         {
             var query = _context.Anuncios
                 .Include(a => a.Modelo)
                     .ThenInclude(m => m.Marca)
                 .Include(a => a.Imagens)
+                .Include(a => a.Reservas)
+                .AsSplitQuery() //resolve o warning e melhora performance
                 .AsQueryable();
 
+
+
+            // filtros existentes
             if (!string.IsNullOrEmpty(marca))
-                query = query.Where(a => a.Modelo.Marca.Nome == marca);
+                    query = query.Where(a => a.Modelo.Marca.Nome == marca);
 
-            if (!string.IsNullOrEmpty(modelo))
-                query = query.Where(a => a.Modelo.Nome == modelo);
+                if (!string.IsNullOrEmpty(modelo))
+                    query = query.Where(a => a.Modelo.Nome == modelo);
 
-            if (!string.IsNullOrEmpty(categoria))
-                query = query.Where(a => a.Categoria == categoria);
+                if (!string.IsNullOrEmpty(categoria))
+                    query = query.Where(a => a.Categoria == categoria);
 
-            if (ano.HasValue)
-                query = query.Where(a => a.Ano == ano.Value);
+                if (ano.HasValue)
+                    query = query.Where(a => a.Ano == ano.Value);
 
-            if (!string.IsNullOrEmpty(combustivel))
-                query = query.Where(a => a.Combustivel == combustivel);
+                if (!string.IsNullOrEmpty(combustivel))
+                    query = query.Where(a => a.Combustivel == combustivel);
 
-            if (!string.IsNullOrEmpty(caixa))
-                query = query.Where(a => a.Caixa == caixa);
+                if (!string.IsNullOrEmpty(caixa))
+                    query = query.Where(a => a.Caixa == caixa);
 
-            if (!string.IsNullOrEmpty(localizacao))
-                query = query.Where(a => a.Localizacao == localizacao);
+                if (!string.IsNullOrEmpty(localizacao))
+                    query = query.Where(a => a.Localizacao == localizacao);
 
-            var anuncios = await query.ToListAsync();
+                // 🔥 ORDENAÇÃO
+                query = ordenar switch
+                {
+                    "preco_asc" => query.OrderBy(a => a.Preco),
+                    "preco_desc" => query.OrderByDescending(a => a.Preco),
+                    "ano_desc" => query.OrderByDescending(a => a.Ano),
+                    "ano_asc" => query.OrderBy(a => a.Ano),
+                    "recentes" => query.OrderByDescending(a => a.DataCriacao),
+                    _ => query.OrderByDescending(a => a.DataCriacao)
+                };
 
-            // Filtros dinâmicos continuam funcionando
-            ViewBag.Marcas = await _context.Marcas
-                .OrderBy(m => m.Nome)
-                .Select(m => m.Nome)
-                .ToListAsync();
-            ViewBag.Modelos = await _context.Anuncios.Select(a => a.Modelo.Nome).Distinct().ToListAsync();
-            ViewBag.Categorias = await _context.Anuncios.Select(a => a.Categoria).Distinct().ToListAsync();
-            ViewBag.Anos = await _context.Anuncios.Select(a => a.Ano).Distinct().ToListAsync();
-            ViewBag.Combustiveis = await _context.Anuncios.Select(a => a.Combustivel).Distinct().ToListAsync();
-            ViewBag.Caixas = await _context.Anuncios.Select(a => a.Caixa).Distinct().ToListAsync();
-            ViewBag.Localizacoes = await _context.Anuncios.Select(a => a.Localizacao).Distinct().ToListAsync();
+                ViewBag.OrdenarAtual = ordenar;
 
-            return View(anuncios);
+                var anuncios = await query.ToListAsync();
+
+                // ViewBags dos filtros (mantém como tens)
+                ViewBag.Marcas = await _context.Marcas.OrderBy(m => m.Nome).Select(m => m.Nome).ToListAsync();
+                ViewBag.Modelos = await _context.Anuncios.Select(a => a.Modelo.Nome).Distinct().ToListAsync();
+                ViewBag.Categorias = await _context.Anuncios.Select(a => a.Categoria).Distinct().ToListAsync();
+                ViewBag.Anos = await _context.Anuncios.Select(a => a.Ano).Distinct().ToListAsync();
+                ViewBag.Combustiveis = await _context.Anuncios.Select(a => a.Combustivel).Distinct().ToListAsync();
+                ViewBag.Caixas = await _context.Anuncios.Select(a => a.Caixa).Distinct().ToListAsync();
+                ViewBag.Localizacoes = await _context.Anuncios.Select(a => a.Localizacao).Distinct().ToListAsync();
+
+                return View(anuncios);
         }
+
 
 
         // Página de detalhes do carro
@@ -91,7 +109,7 @@ namespace AutoMarket.Controllers
 
             // Verificar se existe alguma reserva ativa
             var reservaAtiva = _context.Reservas
-                .Where(r => r.AnuncioId == id && (r.Estado == "Reservado" || r.Estado == "Comprado"))
+                .Where(r => r.AnuncioId == id && (r.Estado == "Reservado" || r.Estado == "Pago"))
                 .FirstOrDefault();
 
             ViewBag.IsFavorito = isFavorito;

@@ -1,0 +1,151 @@
+﻿@model AutoMarket.Models.ViewModels.VendedorAnunciosViewModel
+@{
+    ViewData["Title"] = "Os Meus Anúncios";
+    Layout = "_Layout";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/usermenureservas.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+}
+
+<main class="reservas-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        @await Html.PartialAsync("_MenuVendedor", Model.UtilizadorViewModel)
+    </aside>
+
+    <!-- CONTENT -->
+    <section class="reservas-content">
+        <div class="reservas-header">
+            <div class="header-info">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2">
+                    <path d="M3 13l2-2 4 4L21 3" />
+                </svg>
+                <div>
+                    <h2>Os Meus Anúncios</h2>
+                    <p>@Model.Anuncios.Count @(Model.Anuncios.Count == 1 ? "anúncio" : "anúncios")</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="reservas-list">
+            @if (!Model.Anuncios.Any())
+            {
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none"
+                             viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M12 4v16m8-8H4" />
+                        </svg>
+                    </div>
+                    <h3>Nenhum anúncio criado</h3>
+                    <p>Crie anúncios para começar a vender veículos</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var item in Model.Anuncios)
+                {
+                    <article class="reserva-card">
+                        <div class="reserva-image-container">
+                            <img src="@(item.Anuncio.Imagens?.FirstOrDefault()?.UrlImagem ?? "/images/default-car.jpg")"
+                                 alt="@item.Anuncio.Modelo?.Nome"
+                                 class="reserva-image" />
+
+                            <div class="reserva-status-badge status-@item.EstadoCarro.ToLower()">
+                                @item.EstadoCarro
+                            </div>
+                        </div>
+
+                        <div class="reserva-details">
+                            <div class="reserva-main-info">
+                                <div class="reserva-top">
+                                    <div class="reserva-car-info">
+                                        <h3>
+                                            @item.Anuncio.Modelo?.Marca?.Nome
+                                            @item.Anuncio.Modelo?.Nome
+                                        </h3>
+
+                                        <div class="reserva-specs">
+                                            <span class="spec-badge">
+                                                @($"{item.Anuncio.Preco:C}")
+                                            </span>
+                                            <span class="spec-badge">
+                                                @item.Anuncio.Ano
+                                            </span>
+                                            <span class="spec-badge">
+                                                @item.Anuncio.Localizacao
+                                            </span>
+                                            <span class="spec-badge">
+                                                📊 @item.TotalReservas reservas
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="buyer-info">
+                                    <div>
+                                        <span class="label">Criado em:</span>
+                                        <span class="value">
+                                            @item.Anuncio.DataCriacao.ToString("dd/MM/yyyy")
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span class="label">Categoria:</span>
+                                        <span class="value">@item.Anuncio.Categoria</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="reserva-actions">
+                                <a asp-controller="Search"
+                                   asp-action="ResultsInformationCar"
+                                   asp-route-id="@item.Anuncio.Id"
+                                   class="btn-view btn-action">
+                                    <svg width="14" height="14" viewBox="0 0 24 24"
+                                         fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                        <circle cx="12" cy="12" r="3" />
+                                    </svg>
+                                    Ver 
+                                </a>
+
+                                @if (item.EstadoCarro != "Vendido")
+                                {
+                                    <a asp-controller="Anuncio"
+                                       asp-action="Edit"
+                                       asp-route-id="@item.Anuncio.Id"
+                                       class="btn-edit btn-action">
+                                        ✏️ Editar
+                                    </a>
+
+                                    <form asp-controller="Anuncio"
+                                          asp-action="Desativar"
+                                          asp-route-id="@item.Anuncio.Id"
+                                          method="post"
+                                          style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn-delete btn-action"
+                                                onclick="return confirm('Tem a certeza que deseja desativar este anúncio?');">
+                                            🗑️ Desativar
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <div class="status-pago-compacto">
+                                        ✔️ Vendido
+                                    </div>
+                                }
+                            </div>
+
+                        </div>
+                    </article>
+                }
+            }
+        </div>
+    </section>
+</main>

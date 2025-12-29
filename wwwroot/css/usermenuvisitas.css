@@ -560,46 +560,105 @@ body {
 }
 
 /*ADICIONAL DAS VISITAS DO VENDEDOR*/
-/* ==== INFORMAÇÕES DO COMPRADOR ==== */
-.buyer-info {
+/* ==== NOVO DESIGN DO COMPRADOR ==== */
+.buyer-profile-box {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 16px;
+    background: #f8fafc; /* Azul acinzentado muito leve */
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    margin-top: 10px;
+}
+
+.buyer-avatar {
+    width: 45px;
+    height: 45px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 18px;
+    box-shadow: 0 3px 6px rgba(102, 126, 234, 0.3);
+    flex-shrink: 0;
+}
+
+.buyer-info-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+}
+
+.buyer-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #94a3b8;
+    font-weight: 600;
+}
+
+.buyer-name {
+    font-size: 15px;
+    color: #1e293b;
+    font-weight: 600;
+    margin: 0;
+}
+
+.buyer-actions-inline {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 10px 12px;
-    background: #fff8f0;
-    border-radius: 10px;
-    border-left: 3px solid #f59e0b;
-    flex-wrap: wrap;
+    margin-top: 4px;
 }
 
-    .buyer-info svg {
-        color: #f59e0b;
-        flex-shrink: 0;
+.buyer-contact-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    color: #475569;
+    font-size: 13px;
+    transition: color 0.2s;
+}
+
+    .buyer-contact-item:hover {
+        color: #667eea;
     }
 
-    .buyer-info > div {
-        display: flex;
+.buyer-whatsapp {
+    background: #25d366;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 600;
+    transition: transform 0.2s, background 0.2s;
+}
+
+    .buyer-whatsapp:hover {
+        background: #128c7e;
+        transform: scale(1.05);
+        color: white;
+    }
+
+/* Ajuste de responsividade */
+@media (max-width: 480px) {
+    .buyer-profile-box {
         flex-direction: column;
-        gap: 1px;
-        min-width: 0;
+        align-items: flex-start;
+        gap: 10px;
     }
 
-    .buyer-info .label {
-        font-size: 9px;
-        font-weight: 600;
-        text-transform: uppercase;
-        color: #a0aec0;
-        letter-spacing: 0.3px;
+    .buyer-actions-inline {
+        flex-wrap: wrap;
     }
-
-    .buyer-info .value {
-        font-size: 12px;
-        font-weight: 600;
-        color: #1a2a6c;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
+}
 
 /* ==== NOVOS ESTADOS ==== */
 .status-confirmada {

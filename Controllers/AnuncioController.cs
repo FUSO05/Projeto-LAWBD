@@ -5,6 +5,7 @@ using AutoMarket.Data;
 using AutoMarket.Models;
 using AutoMarket.ViewModels;
 using System.Security.Claims;
+using AutoMarket.Models.ViewModels;
 
 namespace AutoMarket.Controllers
 {
@@ -148,6 +149,78 @@ namespace AutoMarket.Controllers
             }
         }
 
+        [Authorize(Roles = "Vendedor")]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            var anuncio = await _context.Anuncios
+                .Include(a => a.Reservas)
+                .Include(a => a.Imagens)
+                .FirstOrDefaultAsync(a => a.Id == id && a.VendedorId == userId);
+
+            if (anuncio == null)
+                return NotFound();
+
+            if (anuncio.Reservas.Any(r => r.Estado == "Pago"))
+                return Forbid();
+
+            var vm = new EditAnuncioViewModel
+            {
+                Id = anuncio.Id,
+                Titulo = anuncio.Titulo,
+                Descricao = anuncio.Descricao,
+                Preco = (decimal)anuncio.Preco,
+                Ano = (int)anuncio.Ano,
+                Caixa = anuncio.Caixa,
+                Combustivel = anuncio.Combustivel,
+                Categoria = anuncio.Categoria,
+                Cor = anuncio.Cor,
+                Defeito = anuncio.Defeito,
+                Localizacao = anuncio.Localizacao
+            };
+
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Vendedor")]
+        public async Task<IActionResult> Edit(EditAnuncioViewModel vm)
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            var anuncio = await _context.Anuncios
+                .Include(a => a.Reservas)
+                .FirstOrDefaultAsync(a => a.Id == vm.Id && a.VendedorId == userId);
+
+            if (anuncio == null)
+                return NotFound();
+
+            if (anuncio.Reservas.Any(r => r.Estado == "Pago"))
+                return Forbid();
+
+            if (!ModelState.IsValid)
+                return View(vm);
+
+            anuncio.Titulo = vm.Titulo;
+            anuncio.Descricao = vm.Descricao;
+            anuncio.Preco = vm.Preco;
+            anuncio.Ano = vm.Ano;
+            anuncio.Caixa = vm.Caixa;
+            anuncio.Combustivel = vm.Combustivel;
+            anuncio.Categoria = vm.Categoria;
+            anuncio.Cor = vm.Cor;
+            anuncio.Defeito = vm.Defeito;
+            anuncio.Localizacao = vm.Localizacao;
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Anúncio atualizado com sucesso!";
+            return RedirectToAction("VendedorMenuAnuncios", "Account");
+        }
+
+
         // GET: API para buscar modelos por marca
         [HttpGet]
         [AllowAnonymous]
@@ -161,269 +234,5 @@ namespace AutoMarket.Controllers
 
             return Json(modelos);
         }
-
-        // GET: Anuncios/Details/5
-        //[AllowAnonymous]
-        //public async Task<IActionResult> Details(int? id)
-        //{
-        //    if (id == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    var anuncio = await _context.Anuncios
-        //        .Include(a => a.Modelo)
-        //            .ThenInclude(m => m.Marca)
-        //        .Include(a => a.Vendedor)
-        //            .ThenInclude(v => v.Utilizador)
-        //        .Include(a => a.Imagens)
-        //        .FirstOrDefaultAsync(a => a.Id == id);
-
-        //    if (anuncio == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    // Verificar se o anúncio está nos favoritos do utilizador (se estiver logado)
-        //    if (User.Identity?.IsAuthenticated ?? false)
-        //    {
-        //        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        //        ViewBag.IsFavorito = await _context.Favoritos
-        //            .AnyAsync(f => f.UtilizadorId == userId && f.AnuncioId == id);
-        //    }
-        //    else
-        //    {
-        //        ViewBag.IsFavorito = false;
-        //    }
-
-        //    // Para o mapa do Google (se você tiver a API key configurada)
-        //    ViewBag.GoogleMapsApiKey = "SUA_API_KEY_AQUI"; // Substitua pela sua chave
-
-        //    return View(anuncio);
-        //}
-
-        //// GET: Anuncios/MeusAnuncios
-        //[HttpGet]
-        //public async Task<IActionResult> MeusAnuncios()
-        //{
-        //    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        //    var vendedor = await _context.Vendedores
-        //        .FirstOrDefaultAsync(v => v.UtilizadorId == userId);
-
-        //    if (vendedor == null)
-        //    {
-        //        return RedirectToAction("Create");
-        //    }
-
-        //    var anuncios = await _context.Anuncios
-        //        .Include(a => a.Modelo)
-        //            .ThenInclude(m => m.Marca)
-        //        .Include(a => a.Imagens)
-        //        .Where(a => a.VendedorId == vendedor.Id)
-        //        .OrderByDescending(a => a.DataCriacao)
-        //        .ToListAsync();
-
-        //    return View(anuncios);
-        //}
-
-        //// GET: Anuncios/Edit/5
-        //[HttpGet]
-        //public async Task<IActionResult> Edit(int? id)
-        //{
-        //    if (id == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        //    var vendedor = await _context.Vendedores
-        //        .FirstOrDefaultAsync(v => v.UtilizadorId == userId);
-
-        //    if (vendedor == null)
-        //    {
-        //        return Forbid();
-        //    }
-
-        //    var anuncio = await _context.Anuncios
-        //        .Include(a => a.Modelo)
-        //        .Include(a => a.Imagens)
-        //        .FirstOrDefaultAsync(a => a.Id == id && a.VendedorId == vendedor.Id);
-
-        //    if (anuncio == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    var viewModel = new CreateAnuncioViewModel
-        //    {
-        //        ModeloId = anuncio.ModeloId,
-        //        MarcaId = anuncio.Modelo.MarcaId,
-        //        Titulo = anuncio.Titulo,
-        //        Descricao = anuncio.Descricao ?? string.Empty,
-        //        Preco = anuncio.Preco ?? 0,
-        //        Ano = anuncio.Ano ?? DateTime.Now.Year,
-        //        Caixa = anuncio.Caixa ?? string.Empty,
-        //        Quilometragem = anuncio.Quilometragem ?? 0,
-        //        Combustivel = anuncio.Combustivel ?? string.Empty,
-        //        Categoria = anuncio.Categoria ?? string.Empty,
-        //        Cor = anuncio.Cor,
-        //        Estado = anuncio.Estado ?? "Usado",
-        //        Defeito = anuncio.Defeito,
-        //        Localizacao = anuncio.Localizacao ?? string.Empty,
-        //        Marcas = await _context.Marcas.OrderBy(m => m.Nome).ToListAsync()
-        //    };
-
-        //    ViewBag.AnuncioId = id;
-        //    ViewBag.ImagensExistentes = anuncio.Imagens;
-
-        //    return View("Create", viewModel);
-        //}
-
-        //// POST: Anuncios/Edit/5
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Edit(int id, CreateAnuncioViewModel viewModel)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        viewModel.Marcas = await _context.Marcas.OrderBy(m => m.Nome).ToListAsync();
-        //        ViewBag.AnuncioId = id;
-        //        return View("Create", viewModel);
-        //    }
-
-        //    try
-        //    {
-        //        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        //        var vendedor = await _context.Vendedores
-        //            .FirstOrDefaultAsync(v => v.UtilizadorId == userId);
-
-        //        if (vendedor == null)
-        //        {
-        //            return Forbid();
-        //        }
-
-        //        var anuncio = await _context.Anuncios
-        //            .FirstOrDefaultAsync(a => a.Id == id && a.VendedorId == vendedor.Id);
-
-        //        if (anuncio == null)
-        //        {
-        //            return NotFound();
-        //        }
-
-        //        // Atualizar os dados
-        //        anuncio.ModeloId = viewModel.ModeloId;
-        //        anuncio.Titulo = viewModel.Titulo;
-        //        anuncio.Descricao = viewModel.Descricao;
-        //        anuncio.Preco = viewModel.Preco;
-        //        anuncio.Ano = viewModel.Ano;
-        //        anuncio.Caixa = viewModel.Caixa;
-        //        anuncio.Quilometragem = viewModel.Quilometragem;
-        //        anuncio.Combustivel = viewModel.Combustivel;
-        //        anuncio.Categoria = viewModel.Categoria;
-        //        anuncio.Cor = viewModel.Cor;
-        //        anuncio.Estado = viewModel.Estado;
-        //        anuncio.Defeito = viewModel.Defeito;
-        //        anuncio.Localizacao = viewModel.Localizacao;
-
-        //        _context.Update(anuncio);
-        //        await _context.SaveChangesAsync();
-
-        //        // Processar novas imagens se houver
-        //        if (viewModel.Imagens != null && viewModel.Imagens.Any())
-        //        {
-        //            var uploadsFolder = Path.Combine(_environment.WebRootPath, "images", "anuncios");
-
-        //            if (!Directory.Exists(uploadsFolder))
-        //            {
-        //                Directory.CreateDirectory(uploadsFolder);
-        //            }
-
-        //            foreach (var imagem in viewModel.Imagens)
-        //            {
-        //                if (imagem.Length > 0 && imagem.Length <= 5 * 1024 * 1024)
-        //                {
-        //                    var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(imagem.FileName)}";
-        //                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-        //                    using (var stream = new FileStream(filePath, FileMode.Create))
-        //                    {
-        //                        await imagem.CopyToAsync(stream);
-        //                    }
-
-        //                    var imagemAnuncio = new Imagem
-        //                    {
-        //                        AnuncioId = anuncio.Id,
-        //                        UrlImagem = $"/images/anuncios/{uniqueFileName}",
-        //                        DataUpload = DateTime.Now
-        //                    };
-
-        //                    _context.Imagens.Add(imagemAnuncio);
-        //                }
-        //            }
-
-        //            await _context.SaveChangesAsync();
-        //        }
-
-        //        TempData["Success"] = "Anúncio atualizado com sucesso!";
-        //        return RedirectToAction("Details", new { id = anuncio.Id });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        ModelState.AddModelError("", $"Erro ao atualizar anúncio: {ex.Message}");
-        //        viewModel.Marcas = await _context.Marcas.OrderBy(m => m.Nome).ToListAsync();
-        //        ViewBag.AnuncioId = id;
-        //        return View("Create", viewModel);
-        //    }
-        //}
-
-        //// POST: Anuncios/Delete/5
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Delete(int id)
-        //{
-        //    try
-        //    {
-        //        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        //        var vendedor = await _context.Vendedores
-        //            .FirstOrDefaultAsync(v => v.UtilizadorId == userId);
-
-        //        if (vendedor == null)
-        //        {
-        //            return Json(new { success = false, message = "Vendedor não encontrado" });
-        //        }
-
-        //        var anuncio = await _context.Anuncios
-        //            .Include(a => a.Imagens)
-        //            .FirstOrDefaultAsync(a => a.Id == id && a.VendedorId == vendedor.Id);
-
-        //        if (anuncio == null)
-        //        {
-        //            return Json(new { success = false, message = "Anúncio não encontrado" });
-        //        }
-
-        //        // Apagar imagens físicas
-        //        if (anuncio.Imagens != null)
-        //        {
-        //            foreach (var imagem in anuncio.Imagens)
-        //            {
-        //                var imagePath = Path.Combine(_environment.WebRootPath, imagem.UrlImagem.TrimStart('/'));
-        //                if (System.IO.File.Exists(imagePath))
-        //                {
-        //                    System.IO.File.Delete(imagePath);
-        //                }
-        //            }
-        //        }
-
-        //        _context.Anuncios.Remove(anuncio);
-        //        await _context.SaveChangesAsync();
-
-        //        return Json(new { success = true, message = "Anúncio eliminado com sucesso" });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return Json(new { success = false, message = $"Erro ao eliminar anúncio: {ex.Message}" });
-        //    }
-        //}
     }
 }

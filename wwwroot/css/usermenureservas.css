@@ -340,6 +340,38 @@ body {
         text-overflow: ellipsis;
     }
 
+/* Versão Minimalista do Status Pago */
+.status-pago-compacto {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background-color: #f0fdf4; /* Verde quase branco */
+    color: #16a34a; /* Verde sólido */
+    border: 1px solid #bbf7d0;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    /* Garante que ele não cresça mais que o necessário */
+    align-self: center;
+    white-space: nowrap;
+}
+
+    .status-pago-compacto svg {
+        flex-shrink: 0;
+    }
+
+/* Ajuste no container de ações para não empurrar tudo */
+.reserva-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-top: 8px;
+    border-top: 1px solid #f3f4f6;
+}
+
 /* ==== BUYER INFO ==== */
 .buyer-info {
     display: flex;
@@ -427,6 +459,40 @@ body {
     background: linear-gradient(135deg, #ef4444, #dc2626);
     color: #fff;
 }
+
+.btn-checkout {
+    background: linear-gradient(135deg, #16a34a, #22c55e);
+    color: white;
+    font-weight: 600;
+}
+
+/* ==== EDIT BUTTON (AZUL SUAVE) ==== */
+.btn-edit {
+    background: linear-gradient(135deg, #60a5fa, #3b82f6);
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+}
+
+    .btn-edit:hover {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.45);
+    }
+
+
+/* ==== DELETE / DESATIVAR BUTTON ==== */
+.btn-delete {
+    background: linear-gradient(135deg, #ef4444, #dc2626); /* Vermelho forte mas limpo */
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
+}
+
+    .btn-delete:hover {
+        background: linear-gradient(135deg, #dc2626, #b91c1c);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.45);
+    }
+
 
 /* ==== EMPTY STATE ==== */
 .empty-state {

@@ -134,7 +134,9 @@ namespace AutoMarket.Controllers
             // 4️⃣ Hora já está ocupada?
             var indisponivel = await _context.Reservas
                 .AnyAsync(r => r.AnuncioId == anuncioId &&
-                               r.DataHoraReserva == dataHora);
+                               r.DataHoraReserva == dataHora &&
+                               (r.Estado == "Pendente" || r.Estado == "Agendada"));
+
 
             if (indisponivel)
             {
@@ -147,7 +149,7 @@ namespace AutoMarket.Controllers
             {
                 CompradorId = comprador.Id,
                 AnuncioId = anuncioId,
-                Estado = "Agendada",
+                Estado = "Pendente",
                 PrazoExpiracao = DateTime.Now.AddHours(_expHoras),
                 DataHoraReserva = dataHora
             };
@@ -172,9 +174,12 @@ namespace AutoMarket.Controllers
         public async Task<IActionResult> GetHorasIndisponiveis(int anuncioId, DateTime data)
         {
             var horasIndisponiveis = await _context.Reservas
-                .Where(r => r.AnuncioId == anuncioId && r.DataHoraReserva.Date == data.Date)
+                .Where(r => r.AnuncioId == anuncioId
+                            && r.DataHoraReserva.Date == data.Date
+                            && (r.Estado == "Pendente" || r.Estado == "Confirmada" || r.Estado == "Agendada"))
                 .Select(r => r.DataHoraReserva.ToString("HH:mm"))
                 .ToListAsync();
+
 
             // horas passadas
             if (data.Date == DateTime.Today)

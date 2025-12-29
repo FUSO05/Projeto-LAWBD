@@ -237,6 +237,7 @@ body {
 }
 
 .car-card {
+    position: relative;
     background: #ffffff;
     border-radius: 10px;
     overflow: hidden;
@@ -251,6 +252,72 @@ body {
         transform: translateY(-8px);
         box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
     }
+
+    /* Estilo para o Card Vendido */
+    .car-card.sold {
+        position: relative;
+        /* Opcional: remove o efeito de hover para indicar que não está ativo */
+        /*pointer-events: none;*/
+    }
+
+        /* Opcional: Se quiser que o cartão fique cinzento para destacar mais a faixa */
+        .car-card.sold .car-image-container img {
+            filter: grayscale(100%) contrast(0.8);
+            opacity: 0.7;
+            transition: none; /* Remove a animação de zoom no hover */
+        }
+
+        /* A FAIXA "VENDIDO" MELHORADA */
+        .car-card.sold::after {
+            content: "VENDIDO";
+            position: absolute;
+            /* Posicionamento estratégico para garantir visibilidade */
+            top: 25px;
+            left: -70px;
+            /* Largura suficiente para o texto caber sem cortes */
+            width: 250px;
+            /* Rotação */
+            transform: rotate(-45deg);
+            /* Estética Premium */
+            background: linear-gradient(45deg, #d32f2f 0%, #f44336 100%); /* Gradiente vermelho mais rico */
+            color: #ffffff;
+            text-align: center;
+            font-weight: 800;
+            font-size: 14px;
+            letter-spacing: 2px; /* Espaçamento entre letras para melhor leitura */
+            text-transform: uppercase;
+            padding: 10px 0; /* Altura da faixa */
+            /* Sombras para dar profundidade (parece que flutua sobre a imagem) */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+            /* Borda subtil para definição */
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            /* Garante que a faixa não afeta o layout dos outros elementos */
+            pointer-events: none;
+        }
+
+        /* Efeito visual na imagem e conteúdo para destacar as letras */
+        .car-card.sold .car-image {
+            filter: grayscale(0.8) brightness(0.7); /* Torna a imagem cinza e escura */
+            transition: all 0.3s ease;
+        }
+
+        .car-card.sold .car-price,
+        .car-card.sold .car-title {
+            color: #888; /* Apaga as cores principais para focar no "Vendido" */
+        }
+
+        /* Overlay opcional para garantir que o texto seja a coisa mais visível */
+        .car-card.sold .car-image-container::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            z-index: 5;
+        }
 
 .car-image-container {
     position: relative;
