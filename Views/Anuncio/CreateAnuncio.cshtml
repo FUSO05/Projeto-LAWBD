@@ -105,6 +105,7 @@
                             <option value="">Selecionar</option>
                             <option value="Manual">Manual</option>
                             <option value="Automática">Automática</option>
+                            <option value="N/A">N/A</option>
                         </select>
                         <span asp-validation-for="Caixa" class="text-danger"></span>
                     </div>
@@ -304,4 +305,28 @@
             item.remove();
         }
     </script>
+
+    <script>
+        const combustivelSelect = document.querySelector('select[asp-for="Combustivel"]');
+        const caixaSelect = document.querySelector('select[asp-for="Caixa"]');
+
+        function atualizarCaixa() {
+            if (combustivelSelect.value.toLowerCase() === 'elétrico') {
+                caixaSelect.value = 'N/A';
+                caixaSelect.disabled = true;
+            } else {
+                caixaSelect.disabled = false;
+                if (caixaSelect.value === 'N/A') {
+                    caixaSelect.value = ''; // limpa se estava N/A
+                }
+            }
+        }
+
+        // Atualiza ao carregar a página (caso o usuário volte ao form com valor já preenchido)
+        atualizarCaixa();
+
+        // Atualiza sempre que o combustível mudar
+        combustivelSelect.addEventListener('change', atualizarCaixa);
+    </script>
+
 }

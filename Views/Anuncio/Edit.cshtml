@@ -12,13 +12,12 @@
 }
 
 <main class="main-container">
-    <!-- HEADER -->
+
     <div class="page-header">
         <h1>Editar Anúncio</h1>
         <p>Atualize as informações do seu veículo</p>
     </div>
 
-    <!-- PROGRESS (apenas visual) -->
     <div class="progress-container">
         <div class="progress-steps">
             <div class="step completed">
@@ -33,52 +32,81 @@
         </div>
     </div>
 
-    <!-- FORM LAYOUT -->
     <div class="form-layout">
         <div class="form-section">
-            <form asp-action="Edit" method="post">
+
+            <form asp-action="Edit" method="post" enctype="multipart/form-data">
                 @Html.AntiForgeryToken()
                 <input type="hidden" asp-for="Id" />
 
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
+                <!-- ================= UPLOAD AREA ================= -->
+                <h3>Fotos do anúncio</h3>
+
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📸</div>
+                    <div class="upload-text">Clique ou arraste fotos aqui</div>
+                    <div class="upload-subtext">PNG, JPG — máximo 10 fotos</div>
+
+                    <input type="file"
+                           id="NovasImagens"
+                           name="NovasImagens"
+                           multiple
+                           accept="image/*"
+                           hidden />
+                </div>
+
+                <!-- ================= GALERIA ================= -->
+                <div class="image-gallery" id="imageGallery">
+
+                    @foreach (var img in Model.ImagensExistentes)
+                    {
+                        <div class="image-item existing">
+                            <img src="@img.UrlImagem" />
+
+                            <button type="button"
+                                    class="remove-image"
+                                    data-id="@img.Id">
+                                ×
+                            </button>
+                        </div>
+                    }
+
+                </div>
+
+                <!-- inputs hidden para remoção -->
+                <div id="removeInputs"></div>
+
+                <!-- ================= FORM ================= -->
                 <div class="form-grid">
 
-                    <!-- TÍTULO -->
                     <div class="form-group full-width">
-                        <label asp-for="Titulo">Título do Anúncio</label>
-                        <input asp-for="Titulo" class="form-control"
-                               placeholder="Ex: Audi A4 2021 em excelente estado" />
+                        <label asp-for="Titulo">Título</label>
+                        <input asp-for="Titulo" class="form-control" />
                         <span asp-validation-for="Titulo" class="text-danger"></span>
                     </div>
 
-                    <!-- PREÇO -->
                     <div class="form-group">
                         <label asp-for="Preco">Preço (€)</label>
-                        <input asp-for="Preco" type="number" step="0.01"
-                               class="form-control" />
-                        <span asp-validation-for="Preco" class="text-danger"></span>
+                        <input asp-for="Preco" type="number" step="0.01" class="form-control" />
                     </div>
 
-                    <!-- ANO -->
                     <div class="form-group">
                         <label asp-for="Ano">Ano</label>
-                        <input asp-for="Ano" type="number"
-                               class="form-control" />
-                        <span asp-validation-for="Ano" class="text-danger"></span>
+                        <input asp-for="Ano" type="number" class="form-control" />
                     </div>
 
-                    <!-- CAIXA -->
                     <div class="form-group">
-                        <label asp-for="Caixa">Caixa de Velocidades</label>
-                        <select asp-for="Caixa" class="form-control">
+                        <label asp-for="Caixa">Caixa</label>
+                        <select asp-for="Caixa" class="form-control" required>
+                            <option value="">Selecionar</option>
                             <option value="Manual">Manual</option>
                             <option value="Automática">Automática</option>
+                            <option value="N/A">N/A</option>
                         </select>
-                        <span asp-validation-for="Caixa" class="text-danger"></span>
                     </div>
 
-                    <!-- COMBUSTÍVEL -->
                     <div class="form-group">
                         <label asp-for="Combustivel">Combustível</label>
                         <select asp-for="Combustivel" class="form-control">
@@ -87,10 +115,8 @@
                             <option value="Elétrico">Elétrico</option>
                             <option value="Híbrido">Híbrido</option>
                         </select>
-                        <span asp-validation-for="Combustivel" class="text-danger"></span>
                     </div>
 
-                    <!-- CATEGORIA -->
                     <div class="form-group">
                         <label asp-for="Categoria">Categoria</label>
                         <select asp-for="Categoria" class="form-control">
@@ -102,39 +128,26 @@
                             <option value="Pickup">Pickup</option>
                             <option value="Carrinha">Carrinha</option>
                         </select>
-                        <span asp-validation-for="Categoria" class="text-danger"></span>
                     </div>
 
-                    <!-- COR -->
                     <div class="form-group">
                         <label asp-for="Cor">Cor</label>
                         <input asp-for="Cor" class="form-control" />
-                        <span asp-validation-for="Cor" class="text-danger"></span>
                     </div>
 
-                    <!-- LOCALIZAÇÃO -->
                     <div class="form-group full-width">
                         <label asp-for="Localizacao">Localização</label>
                         <input asp-for="Localizacao" class="form-control" />
-                        <span asp-validation-for="Localizacao" class="text-danger"></span>
                     </div>
 
-                    <!-- DEFEITO -->
                     <div class="form-group full-width">
-                        <label asp-for="Defeito">Defeito (se houver)</label>
-                        <textarea asp-for="Defeito"
-                                  class="form-control"
-                                  rows="3"></textarea>
-                        <span asp-validation-for="Defeito" class="text-danger"></span>
+                        <label asp-for="Defeito">Defeito</label>
+                        <textarea asp-for="Defeito" class="form-control" rows="3"></textarea>
                     </div>
 
-                    <!-- DESCRIÇÃO -->
                     <div class="form-group full-width">
-                        <label asp-for="Descricao">Descrição Detalhada</label>
-                        <textarea asp-for="Descricao"
-                                  class="form-control"
-                                  rows="5"></textarea>
-                        <span asp-validation-for="Descricao" class="text-danger"></span>
+                        <label asp-for="Descricao">Descrição</label>
+                        <textarea asp-for="Descricao" class="form-control" rows="5"></textarea>
                     </div>
                 </div>
 
@@ -144,24 +157,10 @@
             </form>
         </div>
 
-        <!-- SIDEBAR -->
         <div class="sidebar">
             <div class="sidebar-card">
-                <h4>ℹ️ Dicas</h4>
-                <ul>
-                    <li>Mantenha o preço competitivo</li>
-                    <li>Atualize a descrição se algo mudou</li>
-                    <li>Seja transparente com defeitos</li>
-                    <li>Anúncios atualizados vendem mais rápido</li>
-                </ul>
-            </div>
-
-            <div class="sidebar-card">
                 <h4>🔒 Aviso</h4>
-                <p>
-                    Não é possível editar anúncios que já tenham
-                    uma reserva <strong>paga</strong>.
-                </p>
+                <p>Não é possível editar anúncios com reserva paga.</p>
             </div>
         </div>
     </div>
@@ -171,4 +170,116 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        const uploadArea = document.getElementById("uploadArea");
+        const fileInput = document.getElementById("NovasImagens");
+        const gallery = document.getElementById("imageGallery");
+        const removeInputs = document.getElementById("removeInputs");
+
+        let newFiles = [];
+
+        uploadArea.addEventListener("click", () => fileInput.click());
+
+        uploadArea.addEventListener("dragover", e => {
+            e.preventDefault();
+            uploadArea.classList.add("dragover");
+        });
+
+        uploadArea.addEventListener("dragleave", () => {
+            uploadArea.classList.remove("dragover");
+        });
+
+        uploadArea.addEventListener("drop", e => {
+            e.preventDefault();
+            uploadArea.classList.remove("dragover");
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener("change", e => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            const total = document.querySelectorAll(".image-item").length;
+
+            for (let i = 0; i < files.length && (total + newFiles.length) < 10; i++) {
+                const file = files[i];
+                if (!file.type.startsWith("image/")) continue;
+
+                newFiles.push(file);
+                previewImage(file);
+            }
+
+            updateInputFiles();
+        }
+
+        function previewImage(file) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const div = document.createElement("div");
+                div.className = "image-item";
+                div.innerHTML = `
+                    <img src="${e.target.result}">
+                    <button type="button" class="remove-image">×</button>
+                `;
+
+                div.querySelector(".remove-image").onclick = () => {
+                    const index = Array.from(gallery.children).indexOf(div) -
+                                  document.querySelectorAll(".existing").length;
+                    newFiles.splice(index, 1);
+                    div.remove();
+                    updateInputFiles();
+                };
+
+                gallery.appendChild(div);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function updateInputFiles() {
+            const dt = new DataTransfer();
+            newFiles.forEach(f => dt.items.add(f));
+            fileInput.files = dt.files;
+        }
+
+        // remover imagens existentes
+        document.querySelectorAll(".existing .remove-image").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const id = btn.dataset.id;
+
+                const input = document.createElement("input");
+                input.type = "hidden";
+                input.name = "ImagensRemover";
+                input.value = id;
+                removeInputs.appendChild(input);
+
+                btn.parentElement.remove();
+            });
+        });
+    </script>
+
+    <script>
+        const combustivelSelect = document.querySelector('select[asp-for="Combustivel"]');
+        const caixaSelect = document.querySelector('select[asp-for="Caixa"]');
+
+        function atualizarCaixa() {
+            if (combustivelSelect.value.toLowerCase() === 'elétrico') {
+                caixaSelect.value = 'N/A';
+                caixaSelect.disabled = true;
+            } else {
+                caixaSelect.disabled = false;
+                if (caixaSelect.value === 'N/A') {
+                    caixaSelect.value = ''; // limpa se estava N/A
+                }
+            }
+        }
+
+        // Atualiza ao carregar a página (caso o usuário volte ao form com valor já preenchido)
+        atualizarCaixa();
+
+        // Atualiza sempre que o combustível mudar
+        combustivelSelect.addEventListener('change', atualizarCaixa);
+    </script>
+
 }

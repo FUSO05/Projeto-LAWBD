@@ -155,6 +155,7 @@ namespace AutoMarket.Controllers
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
             var anuncio = await _context.Anuncios
+                .Where(a => a.Ativo)
                 .Include(a => a.Reservas)
                 .Include(a => a.Imagens)
                 .FirstOrDefaultAsync(a => a.Id == id && a.VendedorId == userId);
@@ -177,7 +178,8 @@ namespace AutoMarket.Controllers
                 Categoria = anuncio.Categoria,
                 Cor = anuncio.Cor,
                 Defeito = anuncio.Defeito,
-                Localizacao = anuncio.Localizacao
+                Localizacao = anuncio.Localizacao,
+                ImagensExistentes = anuncio.Imagens.ToList()
             };
 
             return View(vm);
@@ -191,6 +193,8 @@ namespace AutoMarket.Controllers
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
             var anuncio = await _context.Anuncios
+                .Where(a => a.Ativo)
+                .Include(a => a.Imagens)
                 .Include(a => a.Reservas)
                 .FirstOrDefaultAsync(a => a.Id == vm.Id && a.VendedorId == userId);
 
@@ -199,6 +203,46 @@ namespace AutoMarket.Controllers
 
             if (anuncio.Reservas.Any(r => r.Estado == "Pago"))
                 return Forbid();
+
+            if (vm.ImagensRemover != null && vm.ImagensRemover.Any())
+            {
+                foreach (var imgId in vm.ImagensRemover)
+                {
+                    var imagem = anuncio.Imagens.FirstOrDefault(i => i.Id == imgId);
+                    if (imagem != null)
+                    {
+                        var caminho = Path.Combine(_environment.WebRootPath, imagem.UrlImagem.TrimStart('/'));
+                        if (System.IO.File.Exists(caminho))
+                            System.IO.File.Delete(caminho);
+
+                        _context.Imagens.Remove(imagem);
+                    }
+                }
+            }
+
+            if (vm.NovasImagens != null && vm.NovasImagens.Any())
+            {
+                var pasta = Path.Combine(_environment.WebRootPath, "img", "Anuncios");
+
+                if (!Directory.Exists(pasta))
+                    Directory.CreateDirectory(pasta);
+
+                foreach (var imagem in vm.NovasImagens)
+                {
+                    var nome = $"{Guid.NewGuid()}_{imagem.FileName}";
+                    var caminho = Path.Combine(pasta, nome);
+
+                    using var stream = new FileStream(caminho, FileMode.Create);
+                    await imagem.CopyToAsync(stream);
+
+                    _context.Imagens.Add(new Imagem
+                    {
+                        AnuncioId = anuncio.Id,
+                        UrlImagem = $"/img/Anuncios/{nome}"
+                    });
+                }
+            }
+
 
             if (!ModelState.IsValid)
                 return View(vm);
@@ -217,6 +261,67 @@ namespace AutoMarket.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Anúncio atualizado com sucesso!";
+            return RedirectToAction("VendedorMenuAnuncios", "Account");
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Desativar(int id)
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            var anuncio = await _context.Anuncios
+                .Where(a => a.Ativo)
+                .Include(a => a.Reservas)
+                .FirstOrDefaultAsync(a => a.Id == id && a.VendedorId == userId);
+
+            if (anuncio == null)
+                return NotFound();
+
+            // ❌ Não permitir desativar se houver reserva paga
+            if (anuncio.Reservas.Any(r => r.Estado == "Pago"))
+            {
+                TempData["MensagemErro"] = "Não é possível desativar um anúncio vendido.";
+                return RedirectToAction(
+                    "VendedorMenuAnuncios",
+                    "Account"
+                );
+            }
+            anuncio.Ativo = false;
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(
+                "VendedorMenuAnuncios",
+                "Account"
+            );
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Vendedor")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Reativar(int id)
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            // Busca o anúncio, mesmo desativado
+            var anuncio = await _context.Anuncios
+                .Include(a => a.Reservas)
+                .FirstOrDefaultAsync(a => a.Id == id && a.VendedorId == userId);
+
+            if (anuncio == null)
+                return NotFound();
+
+            // Não permitir reativar se já estiver vendido
+            if (anuncio.Reservas.Any(r => r.Estado == "Pago"))
+            {
+                TempData["MensagemErro"] = "Não é possível reativar um anúncio já vendido.";
+                return RedirectToAction("VendedorMenuAnuncios", "Account");
+            }
+
+            anuncio.Ativo = true; // Reativa o anúncio
+            await _context.SaveChangesAsync();
+
             return RedirectToAction("VendedorMenuAnuncios", "Account");
         }
 

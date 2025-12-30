@@ -33,6 +33,7 @@ namespace AutoMarket.Controllers
                 return RedirectToAction("Login", "Account");
 
             var anuncio = await _context.Anuncios
+                .Where(a => a.Ativo)
                 .Include(a => a.Modelo).ThenInclude(m => m.Marca)
                 .Include(a => a.Vendedor).ThenInclude(v => v.Utilizador)
                 .Include(a => a.Imagens)
@@ -90,6 +91,7 @@ namespace AutoMarket.Controllers
             // 1. Precisamos carregar o Anuncio COMPLETO novamente, 
             // caso contrário a View vai falhar ao tentar mostrar a imagem/titulo no return View
             var anuncio = await _context.Anuncios
+                .Where(a => a.Ativo)
                 .Include(a => a.Modelo).ThenInclude(m => m.Marca)
                 .Include(a => a.Vendedor).ThenInclude(v => v.Utilizador)
                 .Include(a => a.Imagens)
@@ -157,7 +159,7 @@ namespace AutoMarket.Controllers
             _context.Reservas.Add(reserva);
             await _context.SaveChangesAsync();
 
-            TempData["MensagemSucesso"] = "Visita agendada com sucesso!";
+            TempData["MensagemSucesso"] = "Aguarde confirmacao do vendedor!";
 
             // O JavaScript na View vai detetar o TempData e mostrar o popup com o link de redirecionamento.
             return View(vm);
@@ -224,7 +226,7 @@ namespace AutoMarket.Controllers
             {
                 CompradorId = comprador.Id,
                 AnuncioId = anuncio.Id,
-                Estado = "Pendente", // ✅ Estado Pendente
+                Estado = "Aguarde", // ✅ Estado Aguarde
                 PrazoExpiracao = DateTime.Now.AddHours(48),
                 DataHoraReserva = DateTime.Now
             };
@@ -266,7 +268,7 @@ namespace AutoMarket.Controllers
             var reservaExistente = await _context.Reservas
                 .AnyAsync(r => r.AnuncioId == request.anuncioId &&
                                r.CompradorId == comprador.Id &&
-                               (r.Estado == "Pendente" || r.Estado == "Reservado")); // ✅ Verifica ambos estados
+                               (r.Estado == "Aguarde" || r.Estado == "Reservado")); // ✅ Verifica ambos estados
 
             if (reservaExistente)
                 return Json(new { success = false, message = "Você já tem uma reserva para este veículo." });
@@ -276,7 +278,7 @@ namespace AutoMarket.Controllers
             {
                 CompradorId = comprador.Id,
                 AnuncioId = anuncio.Id,
-                Estado = "Pendente", // ✅ Estado inicial é Pendente
+                Estado = "Aguarde", // ✅ Estado inicial é Pendente
                 PrazoExpiracao = DateTime.Now.AddHours(48),
                 DataHoraReserva = DateTime.Now
             };

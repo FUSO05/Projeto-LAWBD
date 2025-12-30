@@ -16,6 +16,9 @@ namespace AutoMarket.Models.ViewModels
         [Required] public string Cor { get; set; }
         public string? Defeito { get; set; }
         [Required] public string Localizacao { get; set; }
+        public List<Imagem>? ImagensExistentes { get; set; }
+        public List<int>? ImagensRemover { get; set; }
+        public List<IFormFile>? NovasImagens { get; set; }
     }
 
 }

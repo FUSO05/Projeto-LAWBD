@@ -80,7 +80,7 @@
                                                 @item.Anuncio.Localizacao
                                             </span>
                                             <span class="spec-badge">
-                                                📊 @item.TotalReservas reservas
+                                                📊 @item.TotalReservas visitas
                                             </span>
                                         </div>
                                     </div>
@@ -110,10 +110,24 @@
                                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                                         <circle cx="12" cy="12" r="3" />
                                     </svg>
-                                    Ver 
+                                    Ver
                                 </a>
 
-                                @if (item.EstadoCarro != "Vendido")
+                                @if (item.EstadoCarro == "Desativado")
+                                {
+                                    <form asp-controller="Anuncio"
+                                          asp-action="Reativar"
+                                          asp-route-id="@item.Anuncio.Id"
+                                          method="post"
+                                          style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn-edit btn-action"
+                                                onclick="event.preventDefault(); showConfirmModal(this.form, 'Deseja reativar este anúncio?');">
+                                            🔄 Reativar
+                                        </button>
+                                    </form>
+                                }
+                                else if (item.EstadoCarro != "Vendido")
                                 {
                                     <a asp-controller="Anuncio"
                                        asp-action="Edit"
@@ -129,7 +143,7 @@
                                           style="display:inline;">
                                         @Html.AntiForgeryToken()
                                         <button type="submit" class="btn-delete btn-action"
-                                                onclick="return confirm('Tem a certeza que deseja desativar este anúncio?');">
+                                                onclick="event.preventDefault(); showConfirmModal(this.form, 'Tem a certeza que deseja desativar este anúncio?');">
                                             🗑️ Desativar
                                         </button>
                                     </form>
@@ -141,11 +155,50 @@
                                     </div>
                                 }
                             </div>
-
                         </div>
                     </article>
                 }
             }
         </div>
     </section>
+    <!-- Modal Customizado -->
+    <div id="confirmModal" class="custom-modal">
+        <div class="custom-modal-content">
+            <p id="confirmMessage">Mensagem de confirmação</p>
+            <div class="custom-modal-actions">
+                <button id="confirmYes" class="btn-edit btn-action">Sim</button>
+                <button id="confirmNo" class="btn-delete btn-action">Não</button>
+            </div>
+        </div>
+    </div>
+    @section Scripts {
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const modal = document.getElementById("confirmModal");
+                const message = document.getElementById("confirmMessage");
+                const btnYes = document.getElementById("confirmYes");
+                const btnNo = document.getElementById("confirmNo");
+                let formToSubmit = null;
+
+                // Função que abre o modal
+                window.showConfirmModal = function(form, msg) {
+                    formToSubmit = form;
+                    message.textContent = msg;
+                    modal.style.display = "flex";
+                }
+
+                btnYes.addEventListener("click", function() {
+                    if (formToSubmit) formToSubmit.submit();
+                    modal.style.display = "none";
+                });
+
+                btnNo.addEventListener("click", function() {
+                    modal.style.display = "none";
+                    formToSubmit = null;
+                });
+            });
+        </script>
+    }
+
 </main>
+

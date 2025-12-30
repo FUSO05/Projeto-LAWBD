@@ -23,6 +23,7 @@
         public string? Categoria { get; set; }
 
         public string Cor { get; set; } = string.Empty;
+        public bool Ativo { get; set; } = true;
 
         // Navegação
         public ICollection<Imagem>? Imagens { get; set; }

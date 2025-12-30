@@ -1,11 +1,149 @@
 ﻿@model AutoMarket.Models.ViewModels.VisitasViewModel
 @{
-    ViewData["Title"] = "Área de Comprador - Visitas";
+    ViewData["Title"] = "Área de Vendedor - Visitas";
 }
 
 @section Styles {
     <link rel="stylesheet" href="~/css/usermenuvisitas.css" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        .custom-modal {
+            display: none; /* inicial escondido */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .custom-modal-content {
+            background: #fff;
+            padding: 24px 32px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+
+        .custom-modal-actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .btn-cancel {
+            background: linear-gradient(135deg, #f87171, #ef4444);
+            color: #fff;
+            font-weight: 600;
+            border-radius: 10px;
+            padding: 10px 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 13px;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+            .btn-cancel:hover {
+                background: linear-gradient(135deg, #ef4444, #dc2626);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 16px rgba(239, 68, 68, 0.35);
+            }
+
+            .btn-cancel:active {
+                transform: translateY(0);
+            }
+
+            .btn-cancel svg {
+                transition: transform 0.3s ease;
+            }
+
+            .btn-cancel:hover svg {
+                transform: rotate(90deg);
+            }
+
+        .btn-modal-yes {
+            background: linear-gradient(135deg, #10b981, #22c55e);
+            color: #fff;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-modal-no {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: #fff;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* ===== BOTÃO REAGENDAR (AZUL CLARO) ===== */
+        .btn-reagendar {
+            background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+            color: #0369a1;
+            font-weight: 600;
+            border-radius: 10px;
+            padding: 10px 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 13px;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+            /* Hover */
+            .btn-reagendar:hover {
+                background: linear-gradient(135deg, #bae6fd, #7dd3fc);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 16px rgba(56, 189, 248, 0.35);
+            }
+
+            /* Active */
+            .btn-reagendar:active {
+                transform: translateY(0);
+            }
+
+            /* Ícone */
+            .btn-reagendar svg {
+                transition: transform 0.3s ease;
+            }
+
+            .btn-reagendar:hover svg {
+                transform: rotate(-15deg);
+            }
+
+        .btn-action {
+            padding: 8px 16px; /* antes: ~10px 18px */
+            font-size: 12px; /* mais fino */
+            border-radius: 8px; /* menos “fofinho” */
+            gap: 6px;
+            line-height: 1;
+        }
+
+            .btn-action svg {
+                width: 14px;
+                height: 14px;
+            }
+
+    </style>
 }
 
 <main class="visits-container">
@@ -34,8 +172,8 @@
                     <line x1="3" y1="10" x2="21" y2="10" />
                 </svg>
                 <div>
-                    <h2>Minhas Visitas Agendadas</h2>
-                    @if (Model != null && Model.Visitas != null && Model.Visitas.Any())
+                    <h2>Visitas aos Meus Veículos</h2>
+                    @if (Model?.Visitas?.Any() ?? false)
                     {
                         <p>@Model.Visitas.Count() @(Model.Visitas.Count() == 1 ? "visita agendada" : "visitas agendadas")</p>
                     }
@@ -55,7 +193,7 @@
         </div>
 
         <div class="visits-list">
-            @if (Model == null || Model.Visitas == null || !Model.Visitas.Any())
+            @if (!Model?.Visitas?.Any() ?? true)
             {
                 <div class="empty-state">
                     <div class="empty-icon">
@@ -67,14 +205,7 @@
                         </svg>
                     </div>
                     <h3>Ainda não tem visitas agendadas</h3>
-                    <p>Explore os nossos anúncios e agende uma visita para conhecer o veículo que deseja pessoalmente</p>
-                    <a href="/Search/SearchResults" class="btn-browse">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="11" cy="11" r="8" />
-                            <path d="m21 21-4.35-4.35" />
-                        </svg>
-                        Explorar Veículos
-                    </a>
+                    <p>Quando os compradores agendarem visitas aos seus veículos, elas aparecerão aqui</p>
                 </div>
             }
             else
@@ -83,18 +214,21 @@
                 {
                     <article class="visit-card">
                         <div class="visit-image-container">
-                            <img src="@(visita.Anuncio.Imagens?.FirstOrDefault()?.UrlImagem ?? "/images/default-car.jpg")"
-                                 alt="@visita.Anuncio.Modelo?.Nome" class="visit-image" />
+                            <img src="@(visita.Anuncio.Imagens?.FirstOrDefault()?.UrlImagem ?? "/images/default-car.jpg")" alt="@visita.Anuncio.Modelo?.Nome" class="visit-image" />
                             <div class="visit-status-badge status-@visita.Estado.ToLower()">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    @if (visita.Estado == "Agendada")
+                                    @if (visita.Estado == "Pendente")
                                     {
                                         <polyline points="20 6 9 17 4 12" />
                                     }
-                                    else if (visita.Estado == "Cancelada")
+                                    else if (visita.Estado == "Cancelada" || visita.Estado == "Recusada")
                                     {
                                         <line x1="18" y1="6" x2="6" y2="18" />
                                         <line x1="6" y1="6" x2="18" y2="18" />
+                                    }
+                                    else if (visita.Estado == "Confirmada")
+                                    {
+                                        <polyline points="20 6 9 17 4 12" />
                                     }
                                 </svg>
                                 @visita.Estado
@@ -112,70 +246,97 @@
                                             <span class="spec-badge">@visita.Anuncio.Combustivel</span>
                                             <span class="spec-badge">@visita.Anuncio.Caixa</span>
                                         </div>
+                                        <div class="visit-datetime">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                                 stroke="currentColor" stroke-width="2">
+                                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                                <line x1="16" y1="2" x2="16" y2="6" />
+                                                <line x1="8" y1="2" x2="8" y2="6" />
+                                                <line x1="3" y1="10" x2="21" y2="10" />
+                                            </svg>
+
+                                            <span>
+                                                @visita.DataHoraReserva.ToString("dd/MM/yyyy 'às' HH:mm")
+                                            </span>
+                                        </div>
                                     </div>
                                     <div class="visit-price-section">
                                         <span class="visit-price">@($"{visita.Anuncio.Preco:C}")</span>
                                     </div>
                                 </div>
 
-                                <div class="visit-datetime">
-                                    <div class="datetime-item">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                                            <line x1="16" y1="2" x2="16" y2="6" />
-                                            <line x1="8" y1="2" x2="8" y2="6" />
-                                            <line x1="3" y1="10" x2="21" y2="10" />
-                                        </svg>
-                                        <div>
-                                            <span class="label">Data</span>
-                                            <span class="value">@visita.DataHoraReserva.ToString("dd/MM/yyyy")</span>
-                                        </div>
+                                <!-- Informações do Comprador -->
+                                <div class="buyer-profile-box">
+                                    <div class="buyer-avatar">
+                                        @{
+                                            var nome = visita.Comprador?.Utilizador?.Nome ?? "U";
+                                            var inicial = nome.Substring(0, 1).ToUpper();
+                                        }
+                                        @inicial
                                     </div>
-                                    <div class="datetime-item">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <circle cx="12" cy="12" r="10" />
-                                            <polyline points="12 6 12 12 16 14" />
-                                        </svg>
-                                        <div>
-                                            <span class="label">Hora</span>
-                                            <span class="value">@visita.DataHoraReserva.ToString("HH:mm")</span>
-                                        </div>
-                                    </div>
-                                    <div class="datetime-item">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                                            <circle cx="12" cy="10" r="3" />
-                                        </svg>
-                                        <div>
-                                            <span class="label">Local</span>
-                                            <span class="value">@(visita.Anuncio.Localizacao ?? "N/A")</span>
+                                    <div class="buyer-info-details">
+                                        <span class="buyer-label">Interessado</span>
+                                        <h4 class="buyer-name">@visita.Comprador?.Utilizador?.Nome</h4>
+                                        <div class="buyer-actions-inline">
+                                            <a href="tel:@visita.Comprador?.Utilizador?.Contacto" class="buyer-contact-item" title="Ligar">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                                                <span>@visita.Comprador?.Utilizador?.Contacto</span>
+                                            </a>
+                                            <a href="https://wa.me/@(visita.Comprador?.Utilizador?.Contacto?.Replace(" ", ""))" target="_blank" class="buyer-whatsapp" title="Enviar WhatsApp">
+                                                <small>WhatsApp</small>
+                                            </a>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="visit-actions">
-                                <a asp-controller="Search" asp-action="ResultsInformationCar" asp-route-id="@visita.Anuncio.Id" class="btn-action btn-view">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                <a asp-controller="Search"
+                                   asp-action="ResultsInformationCar"
+                                   asp-route-id="@visita.Anuncio.Id"
+                                   class="btn-action btn-view">
+
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                         stroke="currentColor" stroke-width="2">
                                         <circle cx="12" cy="12" r="3" />
+                                        <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" />
                                     </svg>
+
                                     Ver
                                 </a>
-                                <button class="btn-action btn-reschedule" onclick="reagendar(@visita.Id)">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polyline points="23 4 23 10 17 10" />
-                                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
-                                    </svg>
-                                    Reagendar
-                                </button>
-                                <button class="btn-action btn-cancel" onclick="cancelar(@visita.Id)">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <line x1="18" y1="6" x2="6" y2="18" />
-                                        <line x1="6" y1="6" x2="18" y2="18" />
-                                    </svg>
-                                    Cancelar
-                                </button>
+
+
+                                @if (visita.Estado == "Pendente")
+                                {
+                                    <a asp-controller="Account"
+                                       asp-action="ReagendarVisita"
+                                       asp-route-id="@visita.Id"
+                                       class="btn-action btn-reagendar">
+
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                             stroke="currentColor" stroke-width="2">
+                                            <path d="M21 12a9 9 0 1 1-3-6.7" />
+                                            <polyline points="21 3 21 9 15 9" />
+                                        </svg>
+
+                                        Reagendar
+                                    </a>
+
+
+                                    <button type="button"
+                                            class="btn-action btn-reject"
+                                            onclick="openDecisionModal(@visita.Id, 'recusar')">
+
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                             stroke="currentColor" stroke-width="2">
+                                            <line x1="18" y1="6" x2="6" y2="18" />
+                                            <line x1="6" y1="6" x2="18" y2="18" />
+                                        </svg>
+
+                                        Cancelar
+                                    </button>
+
+                                }
                             </div>
                         </div>
                     </article>
@@ -183,26 +344,53 @@
             }
         </div>
     </section>
+
+    <!-- MODAL -->
+    <div id="decisionModal" class="custom-modal">
+        <div class="custom-modal-content">
+            <p id="decisionModalText">Deseja realmente executar esta ação?</p>
+            <div class="custom-modal-actions">
+                <button id="decisionModalYes" class="btn-modal-yes">Sim</button>
+                <button id="decisionModalNo" class="btn-modal-no">Não</button>
+            </div>
+        </div>
+    </div>
 </main>
 
 @section Scripts {
     <script>
-        function cancelar(reservaId) {
-            if (!confirm('Tem certeza que deseja cancelar esta visita?')) return;
+        let currentVisitaId = null;
+        let currentAction = null;
+
+        function openDecisionModal(visitaId, action) {
+            currentVisitaId = visitaId;
+            currentAction = action;
+            const modal = document.getElementById('decisionModal');
+            const text = action === 'confirmar' ? 'Deseja realmente aceitar esta visita?' : 'Deseja realmente recusar esta visita?';
+            document.getElementById('decisionModalText').innerText = text;
+            modal.style.display = 'flex';
+        }
+
+        document.getElementById('decisionModalYes').addEventListener('click', () => {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
             const form = document.createElement('form');
             form.method = 'POST';
-            form.action = `/Account/Cancelar/${reservaId}`;
-            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                form.action = currentAction === 'confirmar'
+        ? `/Account/ReagendarVisita/${currentVisitaId}`
+        : `/Account/Cancelar/${currentVisitaId}`;
+
             const input = document.createElement('input');
             input.type = 'hidden';
             input.name = '__RequestVerificationToken';
             input.value = token;
             form.appendChild(input);
+
             document.body.appendChild(form);
             form.submit();
-        }
-        function reagendar(reservaId) {
-            window.location.href = `/Account/Reagendar/${reservaId}`;
-        }
+        });
+
+        document.getElementById('decisionModalNo').addEventListener('click', () => {
+            document.getElementById('decisionModal').style.display = 'none';
+        });
     </script>
 }

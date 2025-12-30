@@ -34,14 +34,6 @@
                     }
                 </select>
 
-                <select id="ano" name="ano">
-                    <option value="">Ano</option>
-                    @foreach (var ano in ViewBag.Anos as List<int?>)
-                    {
-                        <option value="@ano">@ano</option>
-                    }
-                </select>
-
                 <select id="combustivel" name="combustivel">
                     <option value="">Combustível</option>
                     @foreach (var c in ViewBag.Combustiveis as List<string>)
@@ -65,6 +57,20 @@
                         <option value="@l">@l</option>
                     }
                 </select>
+
+                <!-- FILTRO DE PREÇO -->
+                <div class="range-filter">
+                    <label>Preço:</label>
+                    <input type="number" name="precoMin" placeholder="Mínimo" min="0" />
+                    <input type="number" name="precoMax" placeholder="Máximo" min="0" />
+                </div>
+
+                <!-- FILTRO DE ANO -->
+                <div class="range-filter">
+                    <label>Ano:</label>
+                    <input type="number" name="anoMin" placeholder="Mínimo" min="1900" max="2100" />
+                    <input type="number" name="anoMax" placeholder="Máximo" min="1900" max="2100" />
+                </div>
 
                 <button type="submit" class="btn-search">Pesquisar Veículos</button>
             </form>
@@ -122,10 +128,16 @@
     <script>
         const marcaSelect = document.getElementById('marca');
         const modeloSelect = document.getElementById('modelo');
+        const combustivelSelect = document.getElementById('combustivel');
+        const caixaSelect = document.getElementById('caixa');
+
+        // Inicialmente desabilita modelo até escolher marca
+        modeloSelect.disabled = true;
 
         marcaSelect.addEventListener('change', function () {
             const marca = this.value;
-            modeloSelect.innerHTML = '<option value="">Modelo</option>'; // limpa os modelos
+            modeloSelect.innerHTML = '<option value="">Modelo</option>';
+            modeloSelect.disabled = !marca;
 
             if (marca) {
                 fetch(`/Search/GetModelosByMarca?marca=${encodeURIComponent(marca)}`)
@@ -141,5 +153,22 @@
                     .catch(err => console.error(err));
             }
         });
+
+        // Desabilita caixa se o combustível for elétrico
+        function atualizarCaixa() {
+            if (combustivelSelect.value.toLowerCase() === 'elétrico') {
+                caixaSelect.disabled = true;
+                caixaSelect.value = ''; // limpa seleção
+            } else {
+                caixaSelect.disabled = false;
+            }
+        }
+
+        // Rodar na inicialização
+        atualizarCaixa();
+
+        // Rodar sempre que o combustível mudar
+        combustivelSelect.addEventListener('change', atualizarCaixa);
+
     </script>
 }

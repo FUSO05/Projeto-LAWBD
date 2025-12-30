@@ -6,6 +6,66 @@
 @section Styles {
     <link rel="stylesheet" href="~/css/usermenuvisitas.css" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Estilos do Modal Customizado */
+        .custom-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .custom-modal-content {
+            background: #fff;
+            padding: 24px 32px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+
+        .custom-modal-actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .btn-modal-yes {
+            background: linear-gradient(135deg, #10b981, #22c55e);
+            color: #fff;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-modal-no {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: #fff;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+            .btn-modal-yes:hover, .btn-modal-no:hover {
+                transform: translateY(-2px);
+                opacity: 0.9;
+            }
+    </style>
 }
 
 <main class="visits-container">
@@ -28,7 +88,7 @@
                 </svg>
                 <div>
                     <h2>Visitas aos Meus Veículos</h2>
-                    @if (Model != null && Model.Visitas != null && Model.Visitas.Any())
+                    @if (Model?.Visitas != null && Model.Visitas.Any())
                     {
                         <p>@Model.Visitas.Count() @(Model.Visitas.Count() == 1 ? "visita agendada" : "visitas agendadas")</p>
                     }
@@ -48,7 +108,7 @@
         </div>
 
         <div class="visits-list">
-            @if (Model == null || Model.Visitas == null || !Model.Visitas.Any())
+            @if (Model?.Visitas == null || !Model.Visitas.Any())
             {
                 <div class="empty-state">
                     <div class="empty-icon">
@@ -73,20 +133,11 @@
                                  alt="@visita.Anuncio.Modelo?.Nome" class="visit-image" />
                             <div class="visit-status-badge status-@visita.Estado.ToLower()">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    @if (visita.Estado == "Pendente")
+                                    @if (visita.Estado == "Pendente" || visita.Estado == "Confirmada")
                                     {
                                         <polyline points="20 6 9 17 4 12" />
                                     }
-                                    else if (visita.Estado == "Cancelada")
-                                    {
-                                        <line x1="18" y1="6" x2="6" y2="18" />
-                                        <line x1="6" y1="6" x2="18" y2="18" />
-                                    }
-                                    else if (visita.Estado == "Confirmada")
-                                    {
-                                        <polyline points="20 6 9 17 4 12" />
-                                    }
-                                    else if (visita.Estado == "Recusada")
+                                    else
                                     {
                                         <line x1="18" y1="6" x2="6" y2="18" />
                                         <line x1="6" y1="6" x2="18" y2="18" />
@@ -148,7 +199,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Informações do Comprador -->
                                 <div class="buyer-profile-box">
                                     <div class="buyer-avatar">
                                         @{
@@ -161,11 +211,11 @@
                                         <span class="buyer-label">Interessado</span>
                                         <h4 class="buyer-name">@visita.Comprador?.Utilizador?.Nome</h4>
                                         <div class="buyer-actions-inline">
-                                            <a href="tel:@visita.Comprador?.Utilizador?.Contacto" class="buyer-contact-item" title="Ligar">
-                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                                            <a href="tel:@visita.Comprador?.Utilizador?.Contacto" class="buyer-contact-item">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
                                                 <span>@visita.Comprador?.Utilizador?.Contacto</span>
                                             </a>
-                                            <a href="https://wa.me/@(visita.Comprador?.Utilizador?.Contacto?.Replace(" ", ""))" target="_blank" class="buyer-whatsapp" title="Enviar WhatsApp">
+                                            <a href="https://wa.me/@(visita.Comprador?.Utilizador?.Contacto?.Replace(" ", ""))" target="_blank" class="buyer-whatsapp">
                                                 <small>WhatsApp</small>
                                             </a>
                                         </div>
@@ -175,25 +225,15 @@
 
                             <div class="visit-actions">
                                 <a asp-controller="Search" asp-action="ResultsInformationCar" asp-route-id="@visita.Anuncio.Id" class="btn-action btn-view">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                                        <circle cx="12" cy="12" r="3" />
-                                    </svg>
                                     Ver Anúncio
                                 </a>
+
                                 @if (visita.Estado == "Pendente")
                                 {
-                                    <button class="btn-action btn-confirm" onclick="confirmarVisita(@visita.Id)">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <polyline points="20 6 9 17 4 12" />
-                                        </svg>
+                                    <button type="button" class="btn-action btn-confirm" onclick="openDecisionModal(@visita.Id, 'confirmar')">
                                         Aceitar
                                     </button>
-                                    <button class="btn-action btn-reject" onclick="recusarVisita(@visita.Id)">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <line x1="18" y1="6" x2="6" y2="18" />
-                                            <line x1="6" y1="6" x2="18" y2="18" />
-                                        </svg>
+                                    <button type="button" class="btn-action btn-reject" onclick="openDecisionModal(@visita.Id, 'recusar')">
                                         Recusar
                                     </button>
                                 }
@@ -204,44 +244,64 @@
             }
         </div>
     </section>
+
+    <div id="decisionModal" class="custom-modal">
+        <div class="custom-modal-content">
+            <p id="decisionModalText">Deseja realmente executar esta ação?</p>
+            <div class="custom-modal-actions">
+                <button id="decisionModalYes" class="btn-modal-yes">Sim</button>
+                <button id="decisionModalNo" class="btn-modal-no">Não</button>
+            </div>
+        </div>
+    </div>
 </main>
 
 @section Scripts {
     <script>
-        function confirmarVisita(reservaId) {
-            if (!confirm('Tem certeza que deseja aceitar esta visita?')) return;
+        let currentVisitaId = null;
+        let currentAction = null;
 
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `/Account/ConfirmarVisita/${reservaId}`;
+        function openDecisionModal(visitaId, action) {
+            currentVisitaId = visitaId;
+            currentAction = action;
+            const modal = document.getElementById('decisionModal');
+            const text = action === 'confirmar'
+                ? 'Deseja realmente aceitar esta visita?'
+                : 'Deseja realmente recusar esta visita?';
 
-            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = '__RequestVerificationToken';
-            input.value = token;
-
-            form.appendChild(input);
-            document.body.appendChild(form);
-            form.submit();
+            document.getElementById('decisionModalText').innerText = text;
+            modal.style.display = 'flex';
         }
 
-        function recusarVisita(reservaId) {
-            if (!confirm('Tem certeza que deseja recusar esta visita?')) return;
-
+        document.getElementById('decisionModalYes').addEventListener('click', () => {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
             const form = document.createElement('form');
             form.method = 'POST';
-            form.action = `/Account/RecusarVisita/${reservaId}`;
 
-            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            // Define a rota com base na ação escolhida
+            const actionPath = currentAction === 'confirmar' ? 'ConfirmarVisita' : 'RecusarVisita';
+            form.action = `/Account/${actionPath}/${currentVisitaId}`;
+
             const input = document.createElement('input');
             input.type = 'hidden';
             input.name = '__RequestVerificationToken';
             input.value = token;
-
             form.appendChild(input);
+
             document.body.appendChild(form);
             form.submit();
+        });
+
+        document.getElementById('decisionModalNo').addEventListener('click', () => {
+            document.getElementById('decisionModal').style.display = 'none';
+        });
+
+        // Fechar modal ao clicar fora dele
+        window.onclick = function(event) {
+            const modal = document.getElementById('decisionModal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
         }
     </script>
 }

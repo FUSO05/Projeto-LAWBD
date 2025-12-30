@@ -51,7 +51,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m0 6h.01" />
                         </svg>
                     </div>
-                    <h3>Nenhuma reserva pendente</h3>
+                    <h3>Nenhuma reserva Aguarde</h3>
                     <p>Quando os compradores reservarem seus veículos, elas aparecerão aqui</p>
                 </div>
             }
@@ -63,9 +63,27 @@
                         <div class="reserva-image-container">
                             <img src="@(reserva.Anuncio.Imagens?.FirstOrDefault()?.UrlImagem ?? "/images/default-car.jpg")"
                                  alt="@reserva.Anuncio.Modelo?.Nome" class="reserva-image" />
-                            <div class="reserva-status-badge status-@reserva.Estado.ToLower()">
+                            <div class="reserva-status-badge status-@reserva.Estado.ToLower()-compacto">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    @if (reserva.Estado == "Confirmado" || reserva.Estado == "Reservado")
+                                    {
+                                        <polyline points="20 6 9 17 4 12" />
+                                    }
+                                    else if (reserva.Estado == "Recusada" || reserva.Estado == "Cancelada")
+                                    {
+                                        <line x1="18" y1="6" x2="6" y2="18" />
+                                        <line x1="6" y1="6" x2="18" y2="18" />
+                                    }
+                                    else if (reserva.Estado == "Aguarde" || reserva.Estado == "Agendada")
+                                    {
+                                        <circle cx="12" cy="12" r="10" />
+                                        <polyline points="12 6 12 12 16 14" />
+                                    }
+                                    // Adicione outros estados personalizados se necessário
+                                </svg>
                                 @reserva.Estado
                             </div>
+
                         </div>
 
                         <div class="reserva-details">
@@ -95,7 +113,7 @@
                                         <span class="value">@reserva.Comprador?.Utilizador?.Email</span>
                                     </div>
                                 </div>
-                                @if (reserva.Estado == "Pendente")
+                                @if (reserva.Estado == "Aguarde")
                                 {
                                     <div class="reserva-info-extra">
                                         <div class="info-item">
@@ -109,7 +127,7 @@
                                 }
                             </div>
 
-                            <div class="reserva-actions">
+                            <div class="reserva-actions" style="display: flex; gap: 10px; align-items: center;">
                                 <a asp-controller="Search" asp-action="ResultsInformationCar" asp-route-id="@reserva.Anuncio.Id" class="btn-view btn-action">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
@@ -117,80 +135,95 @@
                                     </svg>
                                     Ver
                                 </a>
-                            </div>
-                            @if (reserva.Estado == "Pendente")
-                            {
-                                <button type="button" class="btn-action btn-confirm" onclick="aprovarReserva(@reserva.Id)" style="background-color: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polyline points="20 6 9 17 4 12" />
-                                    </svg>
-                                    Aceitar
-                                </button>
 
-                                <button type="button" class="btn-action btn-reject" onclick="recusarReserva(@reserva.Id)" style="background-color: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <line x1="18" y1="6" x2="6" y2="18" />
-                                        <line x1="6" y1="6" x2="18" y2="18" />
-                                    </svg>
-                                    Recusar
-                                </button>
-                            }
+                                @if (reserva.Estado == "Aguarde")
+                                {
+                                    <button type="button" class="btn-action btn-confirm" onclick="showDecisionModal(@reserva.Id, 'aprovar')">Aceitar</button>
+
+                                    <button type="button" class="btn-action btn-reject" onclick="showDecisionModal(@reserva.Id, 'recusar')">Recusar</button>
+                                }
+                            </div>
                         </div>
                     </article>
                 }
             }
         </div>
     </section>
-</main>
+    <!-- Modal Aprovar/Recusar -->
+    <div id="decisionModal" class="custom-modal">
+        <div class="custom-modal-content">
+            <p id="decisionModalText">Deseja realmente aprovar/recusar esta reserva?</p>
+            <div class="custom-modal-actions">
+                <button id="decisionModalYes" class="btn-modal-yes">Sim</button>
+                <button id="decisionModalNo" class="btn-modal-no">Não</button>
+            </div>
+        </div>
+    </div>
 
+</main>
 @section Scripts {
     <script>
-        function aprovarReserva(reservaId) {
-            if (!confirm('Tem certeza que deseja aprovar esta reserva?')) return;
+        document.addEventListener("DOMContentLoaded", function() {
+            const modal = document.getElementById("decisionModal");
+            const modalText = document.getElementById("decisionModalText");
+            const btnYes = document.getElementById("decisionModalYes");
+            const btnNo = document.getElementById("decisionModalNo");
 
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `/Account/AprovarReserva`;
+            let reservaIdToProcess = null;
+            let actionType = ""; // "aprovar" ou "recusar"
 
-            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-            const tokenInput = document.createElement('input');
-            tokenInput.type = 'hidden';
-            tokenInput.name = '__RequestVerificationToken';
-            tokenInput.value = token;
+            // Função para abrir o modal
+            window.showDecisionModal = function(reservaId, tipo) {
+                reservaIdToProcess = reservaId;
+                actionType = tipo;
+                modalText.textContent = tipo === "aprovar"
+                    ? "Deseja realmente aprovar esta reserva?"
+                    : "Deseja realmente recusar esta reserva?";
+                modal.style.display = "flex";
+            }
 
-            const idInput = document.createElement('input');
-            idInput.type = 'hidden';
-            idInput.name = 'reservaId';
-            idInput.value = reservaId;
+            // Clique em "Sim" no modal
+            btnYes.addEventListener("click", function() {
+                if (!reservaIdToProcess || !actionType) return;
 
-            form.appendChild(tokenInput);
-            form.appendChild(idInput);
-            document.body.appendChild(form);
-            form.submit();
-        }
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/Account/${actionType === "aprovar" ? "AprovarReserva" : "RecusarReserva"}`;
 
-        function recusarReserva(reservaId) {
-            if (!confirm('Tem certeza que deseja recusar esta reserva?')) return;
+                // Adiciona o token anti-forgery
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                const tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = '__RequestVerificationToken';
+                tokenInput.value = token;
 
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `/Account/RecusarReserva`;
+                // Adiciona o id da reserva
+                const idInput = document.createElement('input');
+                idInput.type = 'hidden';
+                idInput.name = 'reservaId';
+                idInput.value = reservaIdToProcess;
 
-            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-            const tokenInput = document.createElement('input');
-            tokenInput.type = 'hidden';
-            tokenInput.name = '__RequestVerificationToken';
-            tokenInput.value = token;
+                form.appendChild(tokenInput);
+                form.appendChild(idInput);
+                document.body.appendChild(form);
+                form.submit();
+            });
 
-            const idInput = document.createElement('input');
-            idInput.type = 'hidden';
-            idInput.name = 'reservaId';
-            idInput.value = reservaId;
+            // Clique em "Não" no modal
+            btnNo.addEventListener("click", function() {
+                modal.style.display = "none";
+                reservaIdToProcess = null;
+                actionType = "";
+            });
 
-            form.appendChild(tokenInput);
-            form.appendChild(idInput);
-            document.body.appendChild(form);
-            form.submit();
-        }
+            // Fecha o modal se o usuário clicar fora do conteúdo
+            window.addEventListener("click", function(event) {
+                if (event.target === modal) {
+                    modal.style.display = "none";
+                    reservaIdToProcess = null;
+                    actionType = "";
+                }
+            });
+        });
     </script>
 }

@@ -43,12 +43,12 @@ header {
 
 /* Logo como imagem para usuários não-admin */
 body:not(.admin) .logo img {
-    display: block; /* Remove espaços abaixo da imagem */
-    width: auto; /* Mantém proporção natural */
-    height: 40px; /* Ajuste a altura desejada */
-    margin: 0; /* Remove margens */
-    padding: 0; /* Remove padding */
-    border: none; /* Remove borda se houver */
+    display: block;
+    width: auto;
+    height: 40px;
+    margin: 0;
+    padding: 0;
+    border: none;
     vertical-align: middle;
 }
 
@@ -134,14 +134,14 @@ nav {
     }
 
 .user-avatar {
-    width: 40px; /* Tamanho da bolinha */
+    width: 40px;
     height: 40px;
-    border-radius: 50%; /* Faz circular */
-    object-fit: cover; /* Preenche o círculo sem distorcer */
-    display: block; /* Remove espaços indesejados */
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
     cursor: pointer;
-    border: 2px solid #fff; /* Opcional: borda branca fina */
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2); /* Opcional: leve sombra */
+    border: 2px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
 .user-menu {
@@ -191,10 +191,11 @@ nav {
     cursor: pointer;
     transition: all 0.25s ease;
 }
+
     .dropdown-content a i,
     .dropdown-content button i {
         font-size: 16px;
-        width: 20px; /* garante espaço igual entre ícone e texto */
+        width: 20px;
         text-align: center;
     }
 
@@ -216,7 +217,6 @@ nav {
     -webkit-text-fill-color: transparent;
 }
 
-
 .logout-btn {
     background: none;
     border: none;
@@ -225,7 +225,6 @@ nav {
     text-align: left;
     cursor: pointer;
 }
-
 
 .hero {
     display: flex;
@@ -304,6 +303,21 @@ nav {
     line-height: 1.6;
 }
 
+.hero-search {
+    background: white;
+    padding: 24px;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+}
+
+    .hero-search h3 {
+        color: #1a2a6c;
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 16px;
+    }
+
 .search-bar {
     position: relative;
     margin-bottom: 25px;
@@ -377,9 +391,9 @@ nav {
     .hero-image img {
         width: 550px;
         margin-bottom: 100px;
-        border-radius: 0; /* Remove cantos arredondados */
-        box-shadow: none; /* Remove sombra do "card" */
-        background: transparent; /* Garante que não há fundo visível */
+        border-radius: 0;
+        box-shadow: none;
+        background: transparent;
         transition: all 0.5s ease;
     }
 
@@ -404,34 +418,45 @@ nav {
 
 .filters {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
     max-width: 1200px;
     margin: 0 auto;
 }
 
-select {
-    padding: 13px 20px;
-    border-radius: 10px;
-    border: 2px solid #e5e7eb;
-    font-size: 14px;
-    font-family: "Poppins", Arial, sans-serif;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    background-color: #fff;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231a2a6c' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 15px center;
-    padding-right: 40px;
-    width: 100%;
-}
-
-    select:hover, select:focus {
-        border-color: #1a2a6c;
-        outline: none;
-        box-shadow: 0 2px 12px rgba(26, 42, 108, 0.1);
+    /* Tornar selects mais compactos e scrolláveis */
+    .filters select {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 2px solid #e8eaf0;
+        background: #f9fafb;
+        color: #2d3748;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: inherit;
+        appearance: none; /* remove setas padrão */
     }
+
+        /* Hover e focus */
+        .filters select:hover {
+            border-color: #667eea;
+            background: #fff;
+        }
+
+        .filters select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Dropdown scrollável */
+        .filters select[size] {
+            max-height: 200px; /* altura da caixa */
+            overflow-y: auto;
+        }
+
 
 .btn-search {
     background: linear-gradient(135deg, #1a2a6c 0%, #2948b1 100%);
@@ -439,11 +464,12 @@ select {
     cursor: pointer;
     border: none;
     font-weight: 600;
-    padding: 15px 40px;
+    padding: 12px 32px;
     border-radius: 10px;
-    font-size: 16px;
+    font-size: 15px;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(26, 42, 108, 0.3);
+    grid-column: 1 / -1;
 }
 
     .btn-search:hover {
@@ -566,7 +592,6 @@ select {
     }
 }
 
-
 @media (max-width: 1024px) {
     header, .hero, .advanced-search, .features {
         padding-left: 40px;
@@ -640,4 +665,67 @@ select {
         background: linear-gradient(135deg, #2948b1 0%, #1a2a6c 100%);
         transform: translateY(-2px);
         box-shadow: 0 6px 15px rgba(26, 42, 108, 0.4);
+    }
+
+/* ==== ESTILIZAÇÃO MELHORADA PARA FILTROS DE PREÇO E ANO ==== */
+.range-filter {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+    .range-filter label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #4a5568;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .range-filter .range-inputs {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .range-filter input[type="number"] {
+        flex: 1;
+        padding: 11px 14px;
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        font-size: 13px;
+        color: #2d3748;
+        font-weight: 500;
+        background-color: #f9fafb;
+        transition: all 0.3s ease;
+        font-family: "Poppins", Arial, sans-serif;
+    }
+
+        .range-filter input[type="number"]:hover {
+            border-color: #1a2a6c;
+            background-color: #fff;
+        }
+
+        .range-filter input[type="number"]:focus {
+            outline: none;
+            border-color: #1a2a6c;
+            background-color: #fff;
+            box-shadow: 0 2px 12px rgba(26, 42, 108, 0.1);
+        }
+
+        .range-filter input[type="number"]::placeholder {
+            color: #a0aec0;
+            font-weight: 400;
+        }
+
+        /* Remove as setas dos inputs de número */
+        .range-filter input[type="number"]::-webkit-inner-spin-button,
+        .range-filter input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+    .range-filter input[type="number"] {
+        -moz-appearance: textfield;
     }

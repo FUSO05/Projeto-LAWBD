@@ -58,12 +58,31 @@
             {
                 @foreach (var reserva in Model.Reservas)
                 {
-                    <article class="reserva-card">
+                    <article class="reserva-card @(reserva.Estado.ToLower() == "pago" ? "pago" : reserva.Estado.ToLower() == "concluída" ? "concluida" : "")">
                         <div class="reserva-image-container">
                             <img src="@(reserva.Anuncio.Imagens?.FirstOrDefault()?.UrlImagem ?? "/images/default-car.jpg")"
                                  alt="@reserva.Anuncio.Modelo?.Nome" class="reserva-image" />
-                            <div class="reserva-status-badge status-@reserva.Estado.ToLower()">
-                                @reserva.Estado
+                            <div class="reserva-status-badge @(reserva.Estado == "Pago" ? "status-vendido" : "status-" + reserva.Estado.ToLower())">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    @if (reserva.Estado == "Reservado" || reserva.Estado == "Confirmado")
+                                    {
+                                        <polyline points="20 6 9 17 4 12" />
+                                    }
+                                    else if (reserva.Estado == "Cancelada" || reserva.Estado == "Recusada")
+                                    {
+                                        <line x1="18" y1="6" x2="6" y2="18" />
+                                        <line x1="6" y1="6" x2="18" y2="18" />
+                                    }
+                                    else if (reserva.Estado == "Pendente")
+                                    {
+                                        <line x1="3" y1="12" x2="21" y2="12" />
+                                    }
+                                    else if (reserva.Estado == "Pago")
+                                    {
+                                        <polyline points="20 6 9 17 4 12" />
+                                    }
+                                </svg>
+                                @(reserva.Estado == "Pago" ? "Vendido" : reserva.Estado)
                             </div>
                         </div>
 

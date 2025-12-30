@@ -69,20 +69,19 @@
                 </div>
 
                 <div class="filter-group">
-                    <label for="ano">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="4" width="18" height="18" rx="2" />
-                            <path d="M16 2v4M8 2v4M3 10h18" />
-                        </svg>
-                        Ano
-                    </label>
-                    <select id="ano" name="ano">
-                        <option value="">Todos os anos</option>
-                        @foreach (var ano in (IEnumerable<int?>)ViewBag.Anos)
-                        {
-                            <option value="@ano">@ano</option>
-                        }
-                    </select>
+                    <label for="precoMin">Preço</label>
+                    <div class="range-inputs">
+                        <input type="number" name="precoMin" placeholder="Mínimo" min="0" value="@Context.Request.Query["precoMin"]" />
+                        <input type="number" name="precoMax" placeholder="Máximo" min="0" value="@Context.Request.Query["precoMax"]" />
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label for="anoMin">Ano</label>
+                    <div class="range-inputs">
+                        <input type="number" name="anoMin" placeholder="Mínimo" min="1900" max="2100" value="@Context.Request.Query["anoMin"]" />
+                        <input type="number" name="anoMax" placeholder="Máximo" min="1900" max="2100" value="@Context.Request.Query["anoMax"]" />
+                    </div>
                 </div>
 
                 <div class="filter-group">
@@ -155,13 +154,17 @@
     <div class="sort-bar">
         <form method="get" asp-action="SearchResults" asp-controller="Search">
             <!-- manter filtros ativos -->
-            <input type="hidden" name="marca" value="@Context.Request.Query["marca"]" />
-            <input type="hidden" name="modelo" value="@Context.Request.Query["modelo"]" />
-            <input type="hidden" name="categoria" value="@Context.Request.Query["categoria"]" />
-            <input type="hidden" name="ano" value="@Context.Request.Query["ano"]" />
-            <input type="hidden" name="combustivel" value="@Context.Request.Query["combustivel"]" />
-            <input type="hidden" name="caixa" value="@Context.Request.Query["caixa"]" />
-            <input type="hidden" name="localizacao" value="@Context.Request.Query["localizacao"]" />
+                    <!-- manter filtros ativos -->
+                    <input type="hidden" name="marca" value="@Context.Request.Query["marca"]" />
+                    <input type="hidden" name="modelo" value="@Context.Request.Query["modelo"]" />
+                    <input type="hidden" name="categoria" value="@Context.Request.Query["categoria"]" />
+                    <input type="hidden" name="anoMin" value="@Context.Request.Query["anoMin"]" />
+                    <input type="hidden" name="anoMax" value="@Context.Request.Query["anoMax"]" />
+                    <input type="hidden" name="precoMin" value="@Context.Request.Query["precoMin"]" />
+                    <input type="hidden" name="precoMax" value="@Context.Request.Query["precoMax"]" />
+                    <input type="hidden" name="combustivel" value="@Context.Request.Query["combustivel"]" />
+                    <input type="hidden" name="caixa" value="@Context.Request.Query["caixa"]" />
+                    <input type="hidden" name="localizacao" value="@Context.Request.Query["localizacao"]" />
 
             <label for="ordenar">Ordenar:</label>
                 @{
