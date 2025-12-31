@@ -424,14 +424,22 @@ namespace AutoMarket.Controllers
             user.PedidoVendedorPendente = true;
             user.RejeitadoVendedor = false;
 
-            // Criar o objeto Vendedor
+            var vendedorExistente = await _context.Vendedores
+                .FirstOrDefaultAsync(v => v.UtilizadorId == userId);
+
+            if (vendedorExistente != null)
+            {
+                TempData["MensagemErro"] = "Já existe um registo de vendedor associado a esta conta.";
+                return RedirectToAction("UserMenu");
+            }
+
             var vendedor = new Vendedor
             {
                 TipoVendedor = model.TipoVendedor,
                 NIF = model.NIF,
-                Utilizador = user,          // EF Core cuida do FK
-                Morada = user.Morada,       // Herda Morada do Utilizador
-                Contacto = user.Contacto    // Herda Contacto do Utilizador
+                UtilizadorId = userId,
+                Morada = user.Morada,
+                Contacto = user.Contacto
             };
 
             // Se houver dados específicos do Comprador, copie também

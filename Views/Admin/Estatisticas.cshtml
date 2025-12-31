@@ -1,0 +1,158 @@
+﻿@model AutoMarket.Models.ViewModels.AdminEstatisticasViewModel
+
+@{
+    ViewData["Title"] = "Dashboard de Estatísticas | AutoMarket";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+<link rel="stylesheet" href="~/css/admin.css" />
+
+<main class="user-settings-container">
+    <aside>
+        @await Html.PartialAsync("_MenuAdmin")
+    </aside>
+
+    <section class="admin-list">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <h2>Painel de Performance</h2>
+            <button onclick="window.location.reload()" class="page-btn"><i class="fas fa-sync"></i> Atualizar Dados</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <i class="fas fa-user-friends"></i>
+                <h4>Compradores</h4>
+                <strong>@Model.TotalCompradores</strong>
+            </div>
+
+            <div class="stat-card" style="border-left-color: #28a745;">
+                <i class="fas fa-store"></i>
+                <h4>Vendedores</h4>
+                <strong>@Model.TotalVendedores</strong>
+            </div>
+
+            <div class="stat-card" style="border-left-color: #f39c12;">
+                <i class="fas fa-car"></i>
+                <h4>Anúncios Ativos</h4>
+                <strong>@Model.TotalAnunciosAtivos</strong>
+            </div>
+
+            <div class="stat-card" style="border-left-color: #e74c3c;">
+                <i class="fas fa-hand-holding-usd"></i>
+                <h4>Vendas Hoje</h4>
+                <strong>@Model.VendasHoje</strong>
+            </div>
+        </div>
+
+        <div class="charts-container">
+            <div class="chart-box">
+                <h3>Vendas por Período</h3>
+                <canvas id="salesChart"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3>Distribuição de Marcas (Top 5)</h3>
+                <canvas id="brandsChart"></canvas>
+            </div>
+        </div>
+
+        <div class="stats-tables">
+            <div class="admin-list" style="box-shadow: none; padding: 0;">
+                <h3><i class="fas fa-trophy"></i> Top Marcas</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Marca</th>
+                            <th>Total Vendas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.TopMarcas.Take(5))
+                        {
+                            <tr>
+                                <td><strong>@item.Nome</strong></td>
+                                <td>@item.Total</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="admin-list" style="box-shadow: none; padding: 0;">
+                <h3><i class="fas fa-star"></i> Top Modelos</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Modelo</th>
+                            <th>Total Vendas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.TopModelos.Take(5))
+                        {
+                            <tr>
+                                <td><strong>@item.Nome</strong></td>
+                                <td>@item.Total</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</main>
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Configuração comum para os gráficos
+            const optionsLine = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: true } }
+            };
+
+            // Gráfico de Linha: Vendas
+            const ctxSales = document.getElementById('salesChart');
+            if (ctxSales) {
+                new Chart(ctxSales.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: ['Hoje', 'Este Mês', 'Este Ano'],
+                        datasets: [{
+                            label: 'Volume de Vendas',
+                            data: [@Model.VendasHoje, @Model.VendasMes, @Model.VendasAno],
+                            borderColor: '#1a2a6c',
+                            backgroundColor: 'rgba(26, 42, 108, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: optionsLine
+                });
+            }
+
+            // Gráfico de Pizza: Marcas
+            const ctxBrands = document.getElementById('brandsChart');
+            if (ctxBrands) {
+                new Chart(ctxBrands.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: @Html.Raw(Json.Serialize(Model.TopMarcas.Take(5).Select(m => m.Nome))),
+                        datasets: [{
+                            data: @Html.Raw(Json.Serialize(Model.TopMarcas.Take(5).Select(m => m.Total))),
+                            backgroundColor: ['#1a2a6c', '#2948b1', '#28a745', '#f39c12', '#e74c3c']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+}

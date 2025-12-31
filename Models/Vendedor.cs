@@ -16,6 +16,7 @@ public class Vendedor
     public int? AprovadoPorId { get; set; }
     public Administrador? AprovadoPor { get; set; }
 
+    public int UtilizadorId { get; set; }
     public Utilizador Utilizador { get; set; } = null!; 
 
     // Navegação

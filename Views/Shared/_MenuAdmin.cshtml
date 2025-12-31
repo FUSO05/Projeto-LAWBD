@@ -1,0 +1,64 @@
+﻿@using System.Security.Claims
+@using Microsoft.EntityFrameworkCore
+@inject AppDbContext Context
+
+@{
+    var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+    var admin = Context.Administradores
+        .Include(a => a.Utilizador)
+        .FirstOrDefault(a => a.Utilizador.Id == userId);
+
+    bool isSuperAdmin = admin?.IsSuperAdmin == true;
+}
+
+<aside class="sidebar">
+    <h3>Menu Admin</h3>
+
+    <ul>
+        <li>
+            <a asp-controller="Admin"
+               asp-action="GerirPedidosVendedor"
+               class="@(ViewContext.RouteData.Values["action"]?.ToString() == "GerirPedidosVendedor" ? "active" : "")">
+                Pedidos Vendedor
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Admin"
+               asp-action="GerirUtilizadores"
+               class="@(ViewContext.RouteData.Values["action"]?.ToString() == "GerirUtilizadores" ? "active" : "")">
+                Gerir Utilizadores
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Admin"
+               asp-action="Estatisticas"
+               class="@(ViewContext.RouteData.Values["action"]?.ToString() == "Estatisticas" ? "active" : "")">
+                Estatísticas
+            </a>
+        </li>
+
+        <li class="divider"></li>
+
+        <li>
+            <a asp-controller="Admin"
+               asp-action="Configuracoes"
+               class="@(ViewContext.RouteData.Values["action"]?.ToString() == "Configuracoes" ? "active" : "")">
+                Configurações
+            </a>
+        </li>
+
+        @if (isSuperAdmin)
+        {
+            <li>
+                <a asp-controller="Admin"
+                   asp-action="CriarAdmin"
+                   class="@(ViewContext.RouteData.Values["action"]?.ToString() == "CriarAdmin" ? "active" : "")">
+                    Criar Admin
+                </a>
+            </li>
+        }
+    </ul>
+</aside>

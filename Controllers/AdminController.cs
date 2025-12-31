@@ -1,10 +1,16 @@
 ﻿using AutoMarket.Models;
 using AutoMarket.Models.ViewModels;
+using AutoMarket.Services;
+using BCrypt.Net;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization;
+using Org.BouncyCastle.Crypto.Generators;
 using System.Security.Claims;
-using AutoMarket.Services;
+
 
 namespace AutoMarket.Controllers
 {
@@ -12,13 +18,15 @@ namespace AutoMarket.Controllers
     public class AdminController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly IPasswordHasher<Utilizador> _passwordHasher;
         private readonly EmailService _emailService; // Adicionar injeção
         private const int PageSize = 20; // 20 utilizadores por página
 
-        public AdminController(AppDbContext context, EmailService emailService)
+        public AdminController(AppDbContext context, EmailService emailService, IPasswordHasher<Utilizador> passwordHasher)
         {
             _context = context;
             _emailService = emailService;
+            _passwordHasher = passwordHasher;
         }
 
         public async Task<IActionResult> GerirUtilizadores(
@@ -119,49 +127,23 @@ namespace AutoMarket.Controllers
         }
 
         // --- NOVA ACTION: Gerir Pedidos de Vendedor ---
-        public async Task<IActionResult> GerirPedidosVendedor(
-            string? searchTerm,
-            int page = 1)
+        public async Task<IActionResult> GerirPedidosVendedor(string? searchTerm, int page = 1)
         {
             var query = _context.Utilizadores
-                // Filtra APENAS pelos utilizadores com pedido pendente
                 .Where(u => u.PedidoVendedorPendente)
-                // Inclui o objeto Vendedor para ver os detalhes do pedido
-                .Include(u => u.VendedorInfo) // Assumindo que você tem uma propriedade de navegação chamada VendedorInfo
                 .AsQueryable();
 
-            // Filtro por pesquisa (apenas nome ou email)
             if (!string.IsNullOrEmpty(searchTerm))
-            {
                 query = query.Where(u => u.Nome.Contains(searchTerm) || u.Email.Contains(searchTerm));
-            }
 
-            // Ordenação (opcional, mas bom para ordenar por data de pedido se existisse)
-            query = query.OrderBy(u => u.DataRegisto); // Ordenar por quem se registou primeiro
+            var users = await query.ToListAsync();
 
-            // Paginação
-            var totalUsers = await query.CountAsync();
-            var totalPages = (int)Math.Ceiling(totalUsers / (double)PageSize);
-
-            var users = await query
-                .Skip((page - 1) * PageSize)
-                .Take(PageSize)
-                .ToListAsync();
-
-            var model = new GerirUtilizadoresAdminViewModel // Reutilizamos o mesmo ViewModel
+            return View(new GerirUtilizadoresAdminViewModel
             {
                 Utilizadores = users
-            };
-
-            ViewBag.CurrentPage = page;
-            ViewBag.TotalPages = totalPages;
-            ViewBag.SearchTerm = searchTerm;
-
-            // Adicionamos um ViewBag específico para a view
-            ViewBag.IsPedidosVendedorPage = true;
-
-            return View("GerirUtilizadores", model); // Reutilizamos a view, mas com o filtro aplicado
+            });
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -277,5 +259,308 @@ namespace AutoMarket.Controllers
                 }
             });
         }
+
+        public async Task<IActionResult> Estatisticas()
+        {
+            var hoje = DateTime.Today;
+            var inicioMes = new DateTime(hoje.Year, hoje.Month, 1);
+            var inicioAno = new DateTime(hoje.Year, 1, 1);
+
+            var model = new AdminEstatisticasViewModel
+            {
+                // Utilizadores
+                TotalCompradores = await _context.Utilizadores.CountAsync(u => u.TipoUser == "Comprador"),
+                TotalVendedores = await _context.Utilizadores.CountAsync(u => u.TipoUser == "Vendedor"),
+
+                // Anúncios
+                TotalAnunciosAtivos = await _context.Anuncios.CountAsync(a => a.Ativo),
+
+                // Vendas (assumindo Estado == "Pago")
+                VendasHoje = await _context.Reservas.CountAsync(r =>
+                    r.Estado == "Pago" && r.DataHoraReserva.Date == hoje),
+
+                VendasMes = await _context.Reservas.CountAsync(r =>
+                    r.Estado == "Pago" && r.DataHoraReserva >= inicioMes),
+
+                VendasAno = await _context.Reservas.CountAsync(r =>
+                    r.Estado == "Pago" && r.DataHoraReserva >= inicioAno),
+
+                // Top Marcas
+                TopMarcas = await _context.Reservas
+                    .Where(r => r.Estado == "Pago")
+                    .Include(r => r.Anuncio)
+                        .ThenInclude(a => a.Modelo)
+                            .ThenInclude(m => m.Marca)
+                    .GroupBy(r => r.Anuncio.Modelo.Marca.Nome)
+                    .Select(g => new TopItemViewModel
+                    {
+                        Nome = g.Key,
+                        Total = g.Count()
+                    })
+                    .OrderByDescending(x => x.Total)
+                    .Take(5)
+                    .ToListAsync(),
+
+                // Top Modelos
+                TopModelos = await _context.Reservas
+                    .Where(r => r.Estado == "Pago")
+                    .Include(r => r.Anuncio)
+                        .ThenInclude(a => a.Modelo)
+                    .GroupBy(r => r.Anuncio.Modelo.Nome)
+                    .Select(g => new TopItemViewModel
+                    {
+                        Nome = g.Key,
+                        Total = g.Count()
+                    })
+                    .OrderByDescending(x => x.Total)
+                    .Take(5)
+                    .ToListAsync()
+            };
+
+            ViewBag.IsEstatisticasPage = true;
+            return View(model);
+        }
+
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Configuracoes()
+        {
+            int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var utilizador = await _context.Utilizadores
+                .Where(u => u.Id == userId)
+                .Select(u => new UtilizadorViewModel
+                {
+                    Nome = u.Nome,
+                    Email = u.Email,
+                    TipoUser = u.TipoUser,
+                    Contacto = u.Contacto,
+                    Morada = u.Morada,
+                    FotolUrl = u.FotoUrl
+                })
+                .FirstOrDefaultAsync();
+
+            if (utilizador == null)
+                return NotFound();
+
+            return View(utilizador);
+        }
+
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AtualizarFoto(IFormFile ProfileImage)
+        {
+            if (ProfileImage == null || ProfileImage.Length == 0)
+            {
+                TempData["Erro"] = "Nenhuma imagem selecionada.";
+                return RedirectToAction("Configuracoes");
+            }
+
+            // Validações
+            var extensoesPermitidas = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+            var extensao = Path.GetExtension(ProfileImage.FileName).ToLower();
+
+            if (!extensoesPermitidas.Contains(extensao))
+            {
+                TempData["Erro"] = "Formato de imagem inválido.";
+                return RedirectToAction("Configuracoes");
+            }
+
+            if (ProfileImage.Length > 2 * 1024 * 1024)
+            {
+                TempData["Erro"] = "A imagem não pode exceder 2MB.";
+                return RedirectToAction("Configuracoes");
+            }
+
+            int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            var utilizador = await _context.Utilizadores.FindAsync(userId);
+            if (utilizador == null)
+                return RedirectToAction("Configuracoes");
+
+            // Pasta destino
+            var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/perfis");
+            if (!Directory.Exists(uploadsPath))
+                Directory.CreateDirectory(uploadsPath);
+
+            // Nome único
+            var fileName = $"admin_{userId}_{Guid.NewGuid()}{extensao}";
+            var filePath = Path.Combine(uploadsPath, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await ProfileImage.CopyToAsync(stream);
+            }
+
+            // Atualizar utilizador
+            utilizador.FotoUrl = "/uploads/" + fileName;
+            _context.Utilizadores.Update(utilizador);
+            await _context.SaveChangesAsync();
+
+            TempData["Sucesso"] = "Foto atualizada com sucesso.";
+            return RedirectToAction("Configuracoes");
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CriarAdmin(string Nome, string Email, string Password)
+        {
+            if (!await IsSuperAdmin())
+                return Forbid();
+
+            if (string.IsNullOrWhiteSpace(Nome) ||
+                string.IsNullOrWhiteSpace(Email) ||
+                string.IsNullOrWhiteSpace(Password))
+            {
+                TempData["Erro"] = "Todos os campos são obrigatórios.";
+                return RedirectToAction("Configuracoes");
+            }
+
+            if (await _context.Utilizadores.AnyAsync(u => u.Email == Email))
+            {
+                TempData["Erro"] = "Já existe um utilizador com esse email.";
+                return RedirectToAction("Configuracoes");
+            }
+
+            // Criar utilizador
+            var utilizador = new Utilizador
+            {
+                Nome = Nome,
+                Email = Email,
+                TipoUser = "Admin",
+                Ativo = true,
+                Password = BCrypt.Net.BCrypt.HashPassword(Password)
+            };
+
+            _context.Utilizadores.Add(utilizador);
+            await _context.SaveChangesAsync();
+
+            // Criar administrador
+            var admin = new Administrador
+            {
+                Utilizador = utilizador,
+                IsSuperAdmin = false
+            };
+
+            _context.Administradores.Add(admin);
+            await _context.SaveChangesAsync();
+
+            // Email de boas-vindas
+            try
+            {
+                var templatePath = Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "EmailTemplates",
+                    "NovoAdmin.html"
+                );
+
+                await _emailService.EnviarEmailComTemplateAsync(
+                    Email,
+                    "Conta de Administrador Criada",
+                    templatePath,
+                    new Dictionary<string, string>
+                    {
+                { "Nome", Nome },
+                { "Email", Email },
+                { "Password", Password }
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Erro ao enviar email admin: " + ex.Message);
+            }
+
+            TempData["Sucesso"] = "Administrador criado com sucesso.";
+            return RedirectToAction("Configuracoes");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SalvarDefinicoes(UtilizadorViewModel model, IFormFile ProfileImage)
+        {
+            // Obter o ID do utilizador logado a partir dos Claims
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null)
+                return RedirectToAction("Login");
+
+            int userId = int.Parse(userIdClaim);
+            var user = await _context.Utilizadores.FindAsync(userId);
+
+            if (user == null)
+                return RedirectToAction("Login");
+
+            // Atualizar os campos
+            user.Email = model.Email;
+            user.Morada = model.Morada;
+            user.Contacto = model.Contacto;
+
+            // Atualizar password se preenchida
+            if (!string.IsNullOrEmpty(model.Password))
+            {
+                user.Password = _passwordHasher.HashPassword(user, model.Password);
+            }
+
+            // Atualizar foto se houver upload
+            if (ProfileImage != null && ProfileImage.Length > 0)
+            {
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                var uniqueFileName = $"{Guid.NewGuid()}_{ProfileImage.FileName}";
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await ProfileImage.CopyToAsync(fileStream);
+                }
+
+                user.FotoUrl = $"/uploads/{uniqueFileName}";
+            }
+
+            // Atualizar no banco
+            _context.Utilizadores.Update(user);
+            await _context.SaveChangesAsync();
+
+            // Atualizar os Claims no cookie para refletir a nova foto imediatamente
+            var claims = new List<Claim>
+    {
+        new Claim(ClaimTypes.Name, user.Email),
+        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new Claim(ClaimTypes.Role, user.TipoUser ?? "User"),
+        new Claim("FotoUrl", user.FotoUrl ?? "/img/avatar.png")
+    };
+
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+
+            // ✅ Adicionar mensagem de sucesso para o pop-up
+            TempData["Mensagem"] = "As suas definições foram salvas com sucesso!";
+            TempData["TipoMensagem"] = "sucesso"; // pode ser "erro", "aviso", etc.
+
+            return RedirectToAction("Configuracoes");
+        }
+
+
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CriarAdmin()
+        {
+            if (!await IsSuperAdmin())
+                return Forbid();
+
+            return View();
+        }
+
+        private async Task<bool> IsSuperAdmin()
+        {
+            int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            return await _context.Administradores
+                .AnyAsync(a => a.Utilizador.Id == userId && a.IsSuperAdmin);
+        }
+
+
     }
 }

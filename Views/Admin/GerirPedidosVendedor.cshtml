@@ -1,0 +1,173 @@
+﻿@model AutoMarket.Models.ViewModels.GerirUtilizadoresAdminViewModel
+@Html.AntiForgeryToken()
+
+@{
+    ViewData["Title"] = "Admin | Pedidos de Vendedor";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="~/css/admin.css" />
+
+<main class="user-settings-container">
+    <aside>
+        @await Html.PartialAsync("_MenuAdmin")
+    </aside>
+
+    <section class="admin-list">
+        <h2>Pedidos de Registo de Vendedor</h2>
+
+        <div class="admin-filters">
+            <input type="text" id="searchInput" placeholder="Pesquisar pedido..." value="@ViewBag.SearchTerm" />
+        </div>
+
+        @if (Model.Utilizadores != null && Model.Utilizadores.Any())
+        {
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome</th>
+                        <th>Email</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model.Utilizadores)
+                    {
+                        <tr id="row-@user.Id">
+                            <td>@user.Id</td>
+                            <td>@user.Nome</td>
+                            <td>@user.Email</td>
+                            <td>
+                                <button class="btn-activate" onclick="confirmarVendedor(@user.Id,true)">Aceitar</button>
+                                <button class="btn-block" onclick="confirmarVendedor(@user.Id,false)">Rejeitar</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="no-data-message">
+                <p>Não existem pedidos de vendedor pendentes de momento.</p>
+            </div>
+        }
+    </section>
+</main>
+
+<!-- Popup de Confirmação -->
+<div id="confirmPopup" class="popup-overlay" style="display:none;">
+    <div class="popup-box confirm-popup">
+        <h3 id="confirmTitle">Confirmar Ação</h3>
+        <p id="confirmMessage">Tem certeza?</p>
+        <div class="popup-buttons">
+            <button class="btn-cancel-popup" onclick="closeConfirmPopup()">Cancelar</button>
+            <button class="btn-confirm-popup" id="confirmBtn">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Popup de Resultado -->
+<div id="resultPopup" class="popup-overlay" style="display:none;">
+    <div class="popup-box" id="resultPopupBox">
+        <h3 id="resultTitle">Título</h3>
+        <p id="resultMessage">Mensagem</p>
+        <div class="popup-buttons">
+            <button class="btn-close-popup" onclick="closeResultPopup()">OK</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function confirmarVendedor(userId, aprovar) {
+            const mensagem = aprovar
+                ? "Tem certeza que deseja ACEITAR este pedido de vendedor?"
+                : "Tem certeza que deseja REJEITAR este pedido de vendedor?";
+
+            const titulo = aprovar ? "Aceitar Pedido" : "Rejeitar Pedido";
+
+            showConfirmPopup(titulo, mensagem, () => {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+                fetch('@Url.Action("ConfirmarVendedor", "Admin")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({ userId: userId, aprovar: aprovar })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        // Remove a linha da tabela
+                        const row = document.getElementById('row-' + userId);
+                        if(row) {
+                            row.style.transition = 'opacity 0.3s ease';
+                            row.style.opacity = '0';
+                            setTimeout(() => row.remove(), 300);
+                        }
+
+                        showResultPopup(
+                            aprovar ? "Pedido Aceite" : "Pedido Rejeitado",
+                            data.message,
+                            aprovar ? "aceite" : "rejeitado"
+                        );
+
+                    } else {
+                        showResultPopup("Erro", data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    showResultPopup("Erro", "Ocorreu um erro ao processar o pedido.");
+                });
+            });
+        }
+
+                // Popup de Confirmação
+        function showConfirmPopup(title, message, onConfirm) {
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').textContent = message;
+            document.getElementById('confirmPopup').style.display = 'flex';
+
+            document.getElementById('confirmBtn').onclick = () => {
+                closeConfirmPopup();
+                onConfirm();
+            };
+        }
+
+        function closeConfirmPopup() {
+            document.getElementById('confirmPopup').style.display = 'none';
+        }
+
+        // Popup de Resultado
+        function showResultPopup(title, message, type = "info") {
+            const popup = document.getElementById('resultPopup');
+            const popupBox = document.getElementById('resultPopupBox');
+
+            popupBox.classList.remove('aceite', 'rejeitado');
+            if(type === "aceite") popupBox.classList.add('aceite');
+            if(type === "rejeitado") popupBox.classList.add('rejeitado');
+
+            document.getElementById('resultTitle').textContent = title;
+            document.getElementById('resultMessage').textContent = message;
+            popup.style.display = 'flex';
+        }
+
+        function closeResultPopup() {
+            document.getElementById('resultPopup').style.display = 'none';
+        }
+
+        // Fechar popups ao clicar fora
+        document.getElementById('confirmPopup').addEventListener('click', function(e) {
+            if (e.target === this) closeConfirmPopup();
+        });
+
+        document.getElementById('resultPopup').addEventListener('click', function(e) {
+            if (e.target === this) closeResultPopup();
+        });
+    </script>
+}

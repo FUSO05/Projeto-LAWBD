@@ -14,6 +14,7 @@ public class Administrador
     [ForeignKey("UtilizadorId")]
     public Utilizador Utilizador { get; set; } = null!;
 
+    public bool IsSuperAdmin { get; set; } 
     public ICollection<Vendedor>? VendedoresAprovados { get; set; }
     public ICollection<HistoricoAdmin>? Historicos { get; set; }
 }
