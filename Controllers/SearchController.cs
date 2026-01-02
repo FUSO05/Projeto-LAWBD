@@ -4,12 +4,12 @@ using AutoMarket.Models;
 
 namespace AutoMarket.Controllers
 {
-    public class SearchController : Controller
+    public class SearchController : BaseController
     {
         private readonly AppDbContext _context;
         private readonly IConfiguration _config;
 
-        public SearchController(AppDbContext context, IConfiguration config)
+        public SearchController(AppDbContext context, IConfiguration config) : base(context)
         {
             _context = context;
             _config = config;

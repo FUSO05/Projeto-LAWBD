@@ -47,12 +47,19 @@
 
         <div class="charts-container">
             <div class="chart-box">
-                <h3>Vendas por Período</h3>
+                <h3>Comparação de Vendas por Ano</h3>
                 <canvas id="salesChart"></canvas>
             </div>
             <div class="chart-box">
                 <h3>Distribuição de Marcas (Top 5)</h3>
                 <canvas id="brandsChart"></canvas>
+            </div>
+        </div>
+
+        <div class="charts-container" style="grid-template-columns: 1fr;">
+            <div class="chart-box" style="height: 400px;">
+                <h3>Evolução Mensal de Vendas - Comparação Ano a Ano</h3>
+                <canvas id="monthlyChart"></canvas>
             </div>
         </div>
 
@@ -101,34 +108,83 @@
         </div>
     </section>
 </main>
+
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // Configuração comum para os gráficos
-            const optionsLine = {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: true } }
-            };
-
-            // Gráfico de Linha: Vendas
+            // Gráfico de Barras: Comparação de Vendas
             const ctxSales = document.getElementById('salesChart');
             if (ctxSales) {
                 new Chart(ctxSales.getContext('2d'), {
-                    type: 'line',
+                    type: 'bar',
                     data: {
-                        labels: ['Hoje', 'Este Mês', 'Este Ano'],
+                        labels: ['Ano Passado', 'Este Ano'],
                         datasets: [{
                             label: 'Volume de Vendas',
-                            data: [@Model.VendasHoje, @Model.VendasMes, @Model.VendasAno],
-                            borderColor: '#1a2a6c',
-                            backgroundColor: 'rgba(26, 42, 108, 0.1)',
-                            fill: true,
-                            tension: 0.4
+                            data: [@Model.VendasAnoPassado, @Model.VendasEsteAno],
+                            backgroundColor: [
+                                'rgba(26, 42, 108, 0.7)',
+                                'rgba(41, 72, 177, 0.7)'
+                            ],
+                            borderColor: [
+                                '#1a2a6c',
+                                '#2948b1'
+                            ],
+                            borderWidth: 2,
+                            borderRadius: 8
                         }]
                     },
-                    options: optionsLine
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 12,
+                                titleFont: {
+                                    size: 14,
+                                    weight: 'bold'
+                                },
+                                bodyFont: {
+                                    size: 13
+                                },
+                                callbacks: {
+                                    label: function(context) {
+                                        return 'Vendas: ' + context.parsed.y;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1,
+                                    font: {
+                                        size: 12
+                                    }
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    font: {
+                                        size: 12,
+                                        weight: 'bold'
+                                    }
+                                },
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
                 });
             }
 
@@ -141,14 +197,157 @@
                         labels: @Html.Raw(Json.Serialize(Model.TopMarcas.Take(5).Select(m => m.Nome))),
                         datasets: [{
                             data: @Html.Raw(Json.Serialize(Model.TopMarcas.Take(5).Select(m => m.Total))),
-                            backgroundColor: ['#1a2a6c', '#2948b1', '#28a745', '#f39c12', '#e74c3c']
+                            backgroundColor: ['#1a2a6c', '#2948b1', '#28a745', '#f39c12', '#e74c3c'],
+                            borderWidth: 2,
+                            borderColor: '#fff'
                         }]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
-                            legend: { position: 'bottom' }
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 15,
+                                    font: {
+                                        size: 12
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 12,
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.label + ': ' + context.parsed + ' vendas';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Gráfico de Linha: Evolução Mensal
+            const ctxMonthly = document.getElementById('monthlyChart');
+            if (ctxMonthly) {
+                const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+                const anoAtual = new Date().getFullYear();
+                const anoPassado = anoAtual - 1;
+
+                new Chart(ctxMonthly.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: meses,
+                        datasets: [
+                            {
+                                label: anoPassado + ' (Ano Completo)',
+                                data: @Html.Raw(Json.Serialize(Model.VendasMensaisAnoPassado)),
+                                borderColor: '#6c757d',
+                                backgroundColor: 'rgba(108, 117, 125, 0.1)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.4,
+                                pointRadius: 4,
+                                pointHoverRadius: 6,
+                                pointBackgroundColor: '#6c757d',
+                                pointBorderColor: '#fff',
+                                pointBorderWidth: 2
+                            },
+                            {
+                                label: anoAtual + ' (Até Agora)',
+                                data: @Html.Raw(Json.Serialize(Model.VendasMensaisEsteAno)),
+                                borderColor: '#1a2a6c',
+                                backgroundColor: 'rgba(26, 42, 108, 0.15)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4,
+                                pointRadius: 5,
+                                pointHoverRadius: 7,
+                                pointBackgroundColor: '#1a2a6c',
+                                pointBorderColor: '#fff',
+                                pointBorderWidth: 2
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top',
+                                labels: {
+                                    padding: 15,
+                                    font: {
+                                        size: 13,
+                                        weight: 'bold'
+                                    },
+                                    usePointStyle: true,
+                                    pointStyle: 'circle'
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 12,
+                                titleFont: {
+                                    size: 14,
+                                    weight: 'bold'
+                                },
+                                bodyFont: {
+                                    size: 13
+                                },
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ' + context.parsed.y + ' vendas';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1,
+                                    font: {
+                                        size: 12
+                                    }
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Número de Vendas',
+                                    font: {
+                                        size: 12,
+                                        weight: 'bold'
+                                    }
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    font: {
+                                        size: 11
+                                    }
+                                },
+                                grid: {
+                                    display: false
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Meses',
+                                    font: {
+                                        size: 12,
+                                        weight: 'bold'
+                                    }
+                                }
+                            }
                         }
                     }
                 });

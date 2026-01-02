@@ -8,6 +8,55 @@
 
 <link rel="stylesheet" href="~/css/admin.css" />
 
+<style>
+    .popup-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+    .popup-box {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        max-width: 400px;
+        width: 90%;
+        box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    }
+
+    .popup-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .btn-cancel-popup {
+        background: #ccc;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .btn-confirm-popup {
+        background: #d9534f;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+</style>
+
 <main class="user-settings-container">
     <aside>
         @await Html.PartialAsync("_MenuAdmin")
@@ -48,13 +97,18 @@
                         <td>
                             @if (user.Ativo)
                             {
-                                <button class="btn-block" onclick="bloquearutilizador(@user.Id)">Bloquear</button>
+                                @* Só mostrar o botão de bloquear se o utilizador NÃO for admin *@
+                                @if (user.TipoUser != "Admin")
+                                {
+                                    <button class="btn-block" onclick="bloquearutilizador(@user.Id)">Bloquear</button>
+                                }
                             }
                             else
                             {
                                 <button class="btn-activate" onclick="ativarutilizador(@user.Id)">Ativar</button>
                             }
                         </td>
+
                     </tr>
                 }
             </tbody>
@@ -86,12 +140,28 @@
     </div>
 </div>
 
+<!-- Popup Bloquear Utilizador -->
+<!-- Popup Bloquear Utilizador -->
+<div id="bloquearPopup" class="popup-overlay" style="display:none;">
+    <div class="popup-box">
+        <h3>Bloquear Utilizador</h3>
+        <p>Indique o motivo do bloqueio:</p>
+        <textarea id="bloquearMotivo" rows="4" style="width:100%; resize:none;"></textarea>
+        <div class="popup-buttons">
+            <button class="btn-cancel-popup" onclick="closeBloquearPopup()">Cancelar</button>
+            <button class="btn-confirm-popup" id="bloquearConfirmBtn">Bloquear</button>
+        </div>
+    </div>
+</div>
+
+
 @section Scripts {
     <script>
         let sortField = "@ViewBag.SortField";
         let sortOrder = "@ViewBag.SortOrder";
         let currentPage = @ViewBag.CurrentPage;
         const isPedidosVendedor = @(ViewBag.IsPedidosVendedorPage ? "true" : "false");
+        let usuarioParaBloquear = null; // guarda temporariamente o ID do utilizador a bloquear
 
         function carregarUtilizadores(page = 1) {
             const searchTerm = document.getElementById("searchInput").value;
@@ -129,21 +199,22 @@
                     });
 
                     const pagination = document.getElementById("pagination");
-                    pagination.innerHTML = "";
-                    for(let i = 1; i <= data.totalPages; i++) {
-                        pagination.innerHTML += `<button class="page-btn ${i===page?'active':''}" data-page="${i}">${i}</button>`;
-                    }
+                    if (pagination) {
+                        pagination.innerHTML = "";
+                        for(let i = 1; i <= data.totalPages; i++) {
+                            pagination.innerHTML += `<button class="page-btn ${i===page?'active':''}" data-page="${i}">${i}</button>`;
+                        }
 
-                    document.querySelectorAll(".page-btn").forEach(btn => {
-                        btn.addEventListener("click", e => {
-                            carregarUtilizadores(parseInt(btn.dataset.page));
+                        document.querySelectorAll(".page-btn").forEach(btn => {
+                            btn.addEventListener("click", e => {
+                                carregarUtilizadores(parseInt(btn.dataset.page));
+                            });
                         });
-                    });
-                });<
+                    }
+                });
         }
 
         document.getElementById("searchInput").addEventListener("input", () => carregarUtilizadores(1));
-
         if (!isPedidosVendedor) {
             document.getElementById("typeFilter").addEventListener("change", () => carregarUtilizadores(1));
         }
@@ -157,17 +228,60 @@
             });
         });
 
+        // NOVO: Bloquear utilizador com popup custom
         function bloquearutilizador(id) {
-            const motivo = prompt("Registar motivo do bloqueio:");
-            if (motivo) {
-                document.getElementById("status" + id).textContent = "Bloqueado";
-                alert("Utilizador bloqueado. Motivo: " + motivo);
-            }
+            usuarioParaBloquear = id;
+            document.getElementById("bloquearMotivo").value = "";
+            document.getElementById("bloquearPopup").style.display = "flex";
         }
 
+        function closeBloquearPopup() {
+            document.getElementById("bloquearPopup").style.display = "none";
+            usuarioParaBloquear = null;
+        }
+
+        document.getElementById("bloquearConfirmBtn").addEventListener("click", function() {
+            const motivo = document.getElementById("bloquearMotivo").value.trim();
+            if(!motivo) {
+                alert("Por favor, indique o motivo do bloqueio.");
+                return;
+            }
+
+            fetch('@Url.Action("BloquearUtilizador", "Admin")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: `id=${usuarioParaBloquear}&motivo=${encodeURIComponent(motivo)}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    showResultPopup("Bloqueado", "Utilizador bloqueado com sucesso.", "rejeitado");
+                    carregarUtilizadores(currentPage);
+                }
+                closeBloquearPopup();
+            });
+        });
+
+        // Ativar utilizador
         function ativarutilizador(id) {
-            document.getElementById("status" + id).textContent = "Ativo";
-            alert("Utilizador ativado.");
+            fetch('@Url.Action("AtivarUtilizador", "Admin")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: `id=${id}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showResultPopup("Ativado", "Utilizador ativado com sucesso.", "aceite");
+                    carregarUtilizadores(currentPage);
+                }
+            });
         }
 
         // Popup de Confirmação
@@ -181,10 +295,7 @@
                 onConfirm();
             };
         }
-
-        function closeConfirmPopup() {
-            document.getElementById('confirmPopup').style.display = 'none';
-        }
+        function closeConfirmPopup() { document.getElementById('confirmPopup').style.display = 'none'; }
 
         // Popup de Resultado
         function showResultPopup(title, message, type = "info") {
@@ -199,18 +310,17 @@
             document.getElementById('resultMessage').textContent = message;
             popup.style.display = 'flex';
         }
-
-        function closeResultPopup() {
-            document.getElementById('resultPopup').style.display = 'none';
-        }
+        function closeResultPopup() { document.getElementById('resultPopup').style.display = 'none'; }
 
         // Fechar popups ao clicar fora
         document.getElementById('confirmPopup').addEventListener('click', function(e) {
             if (e.target === this) closeConfirmPopup();
         });
-
         document.getElementById('resultPopup').addEventListener('click', function(e) {
             if (e.target === this) closeResultPopup();
+        });
+        document.getElementById('bloquearPopup').addEventListener('click', function(e) {
+            if (e.target === this) closeBloquearPopup();
         });
     </script>
 }

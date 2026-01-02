@@ -4,6 +4,7 @@ using AutoMarket.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AutoMarket.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260102121300_addmarcafavorita")]
+    partial class addmarcafavorita
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -197,7 +200,7 @@ namespace AutoMarket.Migrations
 
                     b.HasIndex("UtilizadorAlvoId");
 
-                    b.ToTable("HistoricoAdmins");
+                    b.ToTable("HistoricosAdmin");
                 });
 
             modelBuilder.Entity("AutoMarket.Models.Imagem", b =>
@@ -250,17 +253,17 @@ namespace AutoMarket.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("MarcaId")
+                    b.Property<int>("CompradorId")
                         .HasColumnType("int");
 
-                    b.Property<int>("UtilizadorId")
+                    b.Property<int>("MarcaId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MarcaId");
+                    b.HasIndex("CompradorId");
 
-                    b.HasIndex("UtilizadorId");
+                    b.HasIndex("MarcaId");
 
                     b.ToTable("MarcasFavoritas");
                 });
@@ -285,38 +288,6 @@ namespace AutoMarket.Migrations
                     b.HasIndex("MarcaId");
 
                     b.ToTable("Modelos");
-                });
-
-            modelBuilder.Entity("AutoMarket.Models.Notificacao", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("DataCriada")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("Lida")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Mensagem")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Titulo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UtilizadorId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UtilizadorId");
-
-                    b.ToTable("Notificacoes");
                 });
 
             modelBuilder.Entity("AutoMarket.Models.Reserva", b =>
@@ -637,21 +608,21 @@ namespace AutoMarket.Migrations
 
             modelBuilder.Entity("AutoMarket.Models.MarcaFavorita", b =>
                 {
+                    b.HasOne("Comprador", "Comprador")
+                        .WithMany()
+                        .HasForeignKey("CompradorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("AutoMarket.Models.Marca", "Marca")
                         .WithMany()
                         .HasForeignKey("MarcaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("AutoMarket.Models.Utilizador", "Utilizador")
-                        .WithMany()
-                        .HasForeignKey("UtilizadorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Navigation("Comprador");
 
                     b.Navigation("Marca");
-
-                    b.Navigation("Utilizador");
                 });
 
             modelBuilder.Entity("AutoMarket.Models.Modelo", b =>
@@ -663,17 +634,6 @@ namespace AutoMarket.Migrations
                         .IsRequired();
 
                     b.Navigation("Marca");
-                });
-
-            modelBuilder.Entity("AutoMarket.Models.Notificacao", b =>
-                {
-                    b.HasOne("AutoMarket.Models.Utilizador", "Utilizador")
-                        .WithMany("Notificacoes")
-                        .HasForeignKey("UtilizadorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Utilizador");
                 });
 
             modelBuilder.Entity("AutoMarket.Models.Reserva", b =>
@@ -774,8 +734,6 @@ namespace AutoMarket.Migrations
                     b.Navigation("Bloqueios");
 
                     b.Navigation("CompradorInfo");
-
-                    b.Navigation("Notificacoes");
 
                     b.Navigation("VendedorInfo");
                 });

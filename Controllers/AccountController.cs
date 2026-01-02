@@ -12,14 +12,14 @@ using System.Security.Claims;
 
 namespace AutoMarket.Controllers
 {
-    public class AccountController : Controller
+    public class AccountController : BaseController
     {
         private readonly AppDbContext _context;
         private readonly IPasswordHasher<Utilizador> _passwordHasher;
         private readonly IAuthService _authService;
         private readonly EmailService _emailService;
 
-        public AccountController(AppDbContext context, IPasswordHasher<Utilizador> passwordHasher, IAuthService authService, EmailService emailService)
+        public AccountController(AppDbContext context, IPasswordHasher<Utilizador> passwordHasher, IAuthService authService, EmailService emailService) : base(context)
         {
             _context = context;
             _passwordHasher = passwordHasher;
@@ -61,39 +61,64 @@ namespace AutoMarket.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            var user = await _authService.GetUserByEmailAsync(model.Email);
+            // 1. Procurar o utilizador incluindo a lista de bloqueios
+            var user = await _context.Utilizadores
+                .Include(u => u.Bloqueios)
+                .FirstOrDefaultAsync(u => u.Email == model.Email);
 
-            if (user != null && user.EmailConfirmed && _authService.ValidatePassword(user, model.Password))
+            if (user != null)
             {
-                var claims = new List<Claim>
+                // 2. Verificar se a password está correta
+                if (_authService.ValidatePassword(user, model.Password))
                 {
-                    new Claim(ClaimTypes.Name, user.Email),
-                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                    new Claim(ClaimTypes.Role, user.TipoUser ?? "User"),
-                    new Claim("FotoUrl", string.IsNullOrEmpty(user.FotoUrl) ? "/img/avatar.png" : user.FotoUrl)
-                };
+                    // 3. Verificar se o email está confirmado
+                    if (!user.EmailConfirmed)
+                    {
+                        ModelState.AddModelError("", "Por favor, confirme o seu email antes de aceder.");
+                        return View(model);
+                    }
 
+                    // 4. VERIFICAÇÃO DE BLOQUEIO
+                    if (!user.Ativo)
+                    {
+                        // Vamos buscar o motivo do bloqueio mais recente
+                        var ultimoBloqueio = user.Bloqueios?
+                            .OrderByDescending(b => b.DataBloqueio)
+                            .FirstOrDefault();
 
-                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                        string motivo = ultimoBloqueio?.Motivo ?? "Motivo não especificado pela administração.";
 
-                var authProperties = new AuthenticationProperties
-                {
-                    IsPersistent = model.RememberMe,
-                    ExpiresUtc = model.RememberMe ? DateTime.UtcNow.AddDays(14) : DateTime.UtcNow.AddHours(1)
-                };
+                        ModelState.AddModelError("", $"A sua conta encontra-se bloqueada. Motivo: {motivo}");
+                        return View(model);
+                    }
 
-                await HttpContext.SignInAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme,
-                    new ClaimsPrincipal(claimsIdentity),
-                    authProperties
-                );
+                    // 5. Login com sucesso (Claims)
+                    var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.Email),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Role, user.TipoUser ?? "User"),
+                new Claim("FotoUrl", string.IsNullOrEmpty(user.FotoUrl) ? "/img/avatar.png" : user.FotoUrl)
+            };
 
-                ViewBag.UserPhotoUrl = user.FotoUrl ?? "/img/avatar.png";
+                    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                    var authProperties = new AuthenticationProperties
+                    {
+                        IsPersistent = model.RememberMe,
+                        ExpiresUtc = model.RememberMe ? DateTime.UtcNow.AddDays(14) : DateTime.UtcNow.AddHours(1)
+                    };
 
-                return RedirectToAction("Index", "Home");
+                    await HttpContext.SignInAsync(
+                        CookieAuthenticationDefaults.AuthenticationScheme,
+                        new ClaimsPrincipal(claimsIdentity),
+                        authProperties
+                    );
+
+                    return RedirectToAction("Index", "Home");
+                }
             }
 
-            ModelState.AddModelError("", "Email ou Password inválidos, ou conta não confirmada.");
+            ModelState.AddModelError("", "Email ou Password inválidos.");
             return View(model);
         }
 
@@ -424,6 +449,8 @@ namespace AutoMarket.Controllers
             user.PedidoVendedorPendente = true;
             user.RejeitadoVendedor = false;
 
+            await _context.SaveChangesAsync();
+
             var vendedorExistente = await _context.Vendedores
                 .FirstOrDefaultAsync(v => v.UtilizadorId == userId);
 
@@ -438,6 +465,7 @@ namespace AutoMarket.Controllers
                 TipoVendedor = model.TipoVendedor,
                 NIF = model.NIF,
                 UtilizadorId = userId,
+                Utilizador = user,
                 Morada = user.Morada,
                 Contacto = user.Contacto
             };
@@ -465,7 +493,7 @@ namespace AutoMarket.Controllers
             _context.Vendedores.Add(vendedor);
             await _context.SaveChangesAsync();
 
-            ViewBag.MensagemSucesso = "O seu pedido para se tornar vendedor foi submetido com sucesso e aguarda confirmação do administrador.";
+            ViewBag.MensagemSucesso = "O seu pedido para se tornar vendedor foi submetido com sucesso e aguarda confirmacao do administrador.";
 
             return View(model);
         }

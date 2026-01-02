@@ -11,8 +11,12 @@
 
         // Vendas / Reservas
         public int VendasHoje { get; set; }
-        public int VendasMes { get; set; }
-        public int VendasAno { get; set; }
+        public int VendasAnoPassado { get; set; }
+        public int VendasEsteAno { get; set; }
+
+        // Vendas mensais (Janeiro a Dezembro)
+        public List<int> VendasMensaisAnoPassado { get; set; } = new();
+        public List<int> VendasMensaisEsteAno { get; set; } = new();
 
         // Tops
         public List<TopItemViewModel> TopMarcas { get; set; } = new();
@@ -25,4 +29,3 @@
         public int Total { get; set; }
     }
 }
-

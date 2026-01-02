@@ -21,8 +21,11 @@ namespace AutoMarket.Models
         public DbSet<Imagem> Imagens { get; set; }
         public DbSet<Reserva> Reservas { get; set; }
         public DbSet<Compra> Compras { get; set; }
-        public DbSet<HistoricoAdmin> HistoricosAdmin { get; set; }
+        public DbSet<HistoricoAdmin> HistoricoAdmins { get; set; }
         public DbSet<Favorito> Favoritos { get; set; }
+        public DbSet<MarcaFavorita> MarcasFavoritas { get; set; }
+        public DbSet<Notificacao> Notificacoes { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

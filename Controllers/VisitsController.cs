@@ -7,7 +7,7 @@ using System.Security.Claims;
 
 namespace AutoMarket.Controllers
 {
-    public class VisitsController : Controller
+    public class VisitsController : BaseController
     {
         private readonly AppDbContext _context;
         private readonly int _expHoras = 48; // prazo padrão
@@ -18,7 +18,7 @@ namespace AutoMarket.Controllers
             public int anuncioId { get; set; }
         }
 
-        public VisitsController(AppDbContext context)
+        public VisitsController(AppDbContext context) : base(context)
         {
             _context = context;
         }

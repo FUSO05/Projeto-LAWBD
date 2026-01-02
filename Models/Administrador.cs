@@ -8,7 +8,6 @@ public class Administrador
     public int Id { get; set; }
     public string? Permissoes { get; set; }
 
-    // FK explícita
     public int UtilizadorId { get; set; }
 
     [ForeignKey("UtilizadorId")]

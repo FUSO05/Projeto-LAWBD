@@ -1,28 +1,26 @@
 ﻿using AutoMarket.Models;
 using AutoMarket.Models.ViewModels;
 using AutoMarket.Services;
-using BCrypt.Net;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Org.BouncyCastle.Crypto.Generators;
 using System.Security.Claims;
 
 
 namespace AutoMarket.Controllers
 {
     [Authorize(Roles = "Admin")]
-    public class AdminController : Controller
+    public class AdminController : BaseController
     {
         private readonly AppDbContext _context;
         private readonly IPasswordHasher<Utilizador> _passwordHasher;
         private readonly EmailService _emailService; // Adicionar injeção
         private const int PageSize = 20; // 20 utilizadores por página
 
-        public AdminController(AppDbContext context, EmailService emailService, IPasswordHasher<Utilizador> passwordHasher)
+        public AdminController(AppDbContext context, EmailService emailService, IPasswordHasher<Utilizador> passwordHasher) : base(context)
         {
             _context = context;
             _emailService = emailService;
@@ -196,6 +194,8 @@ namespace AutoMarket.Controllers
                     _context.Vendedores.Update(vendedorExistente);
                 }
 
+                await RegistarAcaoAdmin($"Aprovou o pedido de vendedor do utilizador {user.Nome}", user.Id);
+
                 emailSubject = "Parabéns! O Seu Pedido de Vendedor Foi Aceite";
                 emailTemplate = Path.Combine(Directory.GetCurrentDirectory(), "EmailTemplates", "VendedorAceite.html");
                 message = "Vendedor aprovado com sucesso.";
@@ -216,6 +216,8 @@ namespace AutoMarket.Controllers
                 {
                     _context.Vendedores.Remove(vendedorExistente);
                 }
+
+                await RegistarAcaoAdmin($"Rejeitou o pedido de vendedor do utilizador {user.Nome}", user.Id);
 
                 emailSubject = "Atualização do Seu Pedido de Vendedor";
                 emailTemplate = Path.Combine(Directory.GetCurrentDirectory(), "EmailTemplates", "VendedorRecusado.html");
@@ -263,8 +265,43 @@ namespace AutoMarket.Controllers
         public async Task<IActionResult> Estatisticas()
         {
             var hoje = DateTime.Today;
-            var inicioMes = new DateTime(hoje.Year, hoje.Month, 1);
-            var inicioAno = new DateTime(hoje.Year, 1, 1);
+            var inicioEsteAno = new DateTime(hoje.Year, 1, 1);
+            var fimEsteAno = new DateTime(hoje.Year, 12, 31, 23, 59, 59);
+            var inicioAnoPassado = new DateTime(hoje.Year - 1, 1, 1);
+            var fimAnoPassado = new DateTime(hoje.Year - 1, 12, 31, 23, 59, 59);
+
+            // Buscar vendas do ano passado agrupadas por mês
+            var vendasAnoPassadoPorMes = await _context.Reservas
+                .Where(r => r.Estado == "Pago" &&
+                            r.DataHoraReserva >= inicioAnoPassado &&
+                            r.DataHoraReserva <= fimAnoPassado)
+                .GroupBy(r => r.DataHoraReserva.Month)
+                .Select(g => new { Mes = g.Key, Total = g.Count() })
+                .ToListAsync();
+
+            // Buscar vendas deste ano agrupadas por mês
+            var vendasEsteAnoPorMes = await _context.Reservas
+                .Where(r => r.Estado == "Pago" &&
+                            r.DataHoraReserva >= inicioEsteAno &&
+                            r.DataHoraReserva <= fimEsteAno)
+                .GroupBy(r => r.DataHoraReserva.Month)
+                .Select(g => new { Mes = g.Key, Total = g.Count() })
+                .ToListAsync();
+
+            // Criar arrays de 12 meses (Janeiro a Dezembro)
+            var vendasMensaisAnoPassado = new int[12];
+            var vendasMensaisEsteAno = new int[12];
+
+            // Preencher com os dados
+            foreach (var venda in vendasAnoPassadoPorMes)
+            {
+                vendasMensaisAnoPassado[venda.Mes - 1] = venda.Total;
+            }
+
+            foreach (var venda in vendasEsteAnoPorMes)
+            {
+                vendasMensaisEsteAno[venda.Mes - 1] = venda.Total;
+            }
 
             var model = new AdminEstatisticasViewModel
             {
@@ -279,11 +316,12 @@ namespace AutoMarket.Controllers
                 VendasHoje = await _context.Reservas.CountAsync(r =>
                     r.Estado == "Pago" && r.DataHoraReserva.Date == hoje),
 
-                VendasMes = await _context.Reservas.CountAsync(r =>
-                    r.Estado == "Pago" && r.DataHoraReserva >= inicioMes),
+                VendasAnoPassado = vendasMensaisAnoPassado.Sum(),
+                VendasEsteAno = vendasMensaisEsteAno.Sum(),
 
-                VendasAno = await _context.Reservas.CountAsync(r =>
-                    r.Estado == "Pago" && r.DataHoraReserva >= inicioAno),
+                // Vendas mensais
+                VendasMensaisAnoPassado = vendasMensaisAnoPassado.ToList(),
+                VendasMensaisEsteAno = vendasMensaisEsteAno.ToList(),
 
                 // Top Marcas
                 TopMarcas = await _context.Reservas
@@ -430,7 +468,8 @@ namespace AutoMarket.Controllers
                 Email = Email,
                 TipoUser = "Admin",
                 Ativo = true,
-                Password = BCrypt.Net.BCrypt.HashPassword(Password)
+                Password = _passwordHasher.HashPassword(null!, Password),
+                EmailConfirmed = true
             };
 
             _context.Utilizadores.Add(utilizador);
@@ -472,7 +511,6 @@ namespace AutoMarket.Controllers
                 Console.WriteLine("Erro ao enviar email admin: " + ex.Message);
             }
 
-            TempData["Sucesso"] = "Administrador criado com sucesso.";
             return RedirectToAction("Configuracoes");
         }
 
@@ -561,6 +599,90 @@ namespace AutoMarket.Controllers
                 .AnyAsync(a => a.Utilizador.Id == userId && a.IsSuperAdmin);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BloquearUtilizador(int id, string motivo)
+        {
+            var user = await _context.Utilizadores.Include(u => u.Bloqueios).FirstOrDefaultAsync(u => u.Id == id);
+            if (user == null) return NotFound();
+
+            user.Ativo = false;
+
+            // Adicionar novo registo de bloqueio
+            var bloqueio = new Bloqueio
+            {
+                UtilizadorId = id,
+                Motivo = motivo,
+                DataBloqueio = DateTime.Now
+            };
+
+            _context.Bloqueios.Add(bloqueio);
+
+            await RegistarAcaoAdmin($"Bloqueou o utilizador {user.Nome} com motivo: {motivo}", user.Id);
+
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AtivarUtilizador(int id)
+        {
+            var user = await _context.Utilizadores.FindAsync(id);
+            if (user == null) return NotFound();
+
+            user.Ativo = true;
+            await _context.SaveChangesAsync();
+
+            await RegistarAcaoAdmin($"Ativou o utilizador {user.Nome}", user.Id);
+
+            return Json(new { success = true });
+        }
+
+        private async Task RegistarAcaoAdmin(string acao, int? utilizadorAlvoId = null, int? anuncioAlvoId = null)
+        {
+            int adminId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            var historico = new HistoricoAdmin
+            {
+                AdminId = adminId,
+                UtilizadorAlvoId = utilizadorAlvoId,
+                AnuncioAlvoId = anuncioAlvoId,
+                Acao = acao,
+                DataAcao = DateTime.Now
+            };
+
+            _context.HistoricoAdmins.Add(historico);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<IActionResult> Historico(int page = 1)
+        {
+            const int PageSize = 20;
+
+            var query = _context.HistoricoAdmins
+                .Include(h => h.Admin)
+                    .ThenInclude(a => a.Utilizador)
+                .Include(h => h.UtilizadorAlvo)
+                .Include(h => h.AnuncioAlvo)
+                .OrderByDescending(h => h.DataAcao)
+                .AsQueryable();
+
+            var total = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(total / (double)PageSize);
+
+            var historicos = await query
+                .Skip((page - 1) * PageSize)
+                .Take(PageSize)
+                .ToListAsync();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+
+            return View(historicos);
+        }
 
     }
 }
+

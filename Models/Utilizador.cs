@@ -83,5 +83,7 @@ namespace AutoMarket.Models
         public Vendedor? VendedorInfo { get; set; }
         public Administrador? AdministradorInfo { get; set; }
         public Comprador? CompradorInfo { get; set; }
+        public ICollection<Notificacao> Notificacoes { get; set; } = new List<Notificacao>();
+
     }
 }

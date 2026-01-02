@@ -1,0 +1,267 @@
+﻿@{
+    ViewData["Title"] = "Criar Novo Administrador | AutoMarket";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+}
+<style>
+    /* Overlay */
+    #popup-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+    /* Hidden */
+    .popup-hidden {
+        display: none !important;
+    }
+
+    /* Popup box */
+    .popup {
+        background: #fff;
+        width: 100%;
+        max-width: 420px;
+        border-radius: 14px;
+        box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    }
+
+    /* Header */
+    .popup-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 20px;
+        border-bottom: 1px solid #eee;
+    }
+
+        .popup-header h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+    /* Body */
+    .popup-body {
+        padding: 20px;
+        font-size: 15px;
+        color: #555;
+    }
+
+    /* Footer */
+    .popup-footer {
+        padding: 15px 20px;
+        text-align: right;
+        border-top: 1px solid #eee;
+    }
+
+    .popup-btn {
+        background: #1a2a6c;
+        color: #fff;
+        border: none;
+        padding: 8px 18px;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    /* Close */
+    .popup-close {
+        background: none;
+        border: none;
+        font-size: 22px;
+        cursor: pointer;
+    }
+
+</style>
+<main class="user-settings-container">
+    <aside>
+        @await Html.PartialAsync("_MenuAdmin")
+    </aside>
+
+    <section class="settings-form">
+        <div class="form-header">
+            <div class="header-content">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="8.5" cy="7" r="4" />
+                    <line x1="20" y1="8" x2="20" y2="14" />
+                    <line x1="23" y1="11" x2="17" y2="11" />
+                </svg>
+                <div>
+                    <h2>Criar Novo Administrador</h2>
+                    <p>Adicionar um novo administrador ao sistema</p>
+                </div>
+            </div>
+        </div>
+
+        <form asp-action="CriarAdmin" method="post">
+            @Html.AntiForgeryToken()
+            
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label for="nome">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                            <circle cx="12" cy="7" r="4" />
+                        </svg>
+                        Nome Completo
+                    </label>
+                    <input type="text" id="nome" name="Nome" placeholder="Ex: João Silva" required>
+                    <span class="input-hint">Nome completo do novo administrador</span>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="email">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                            <polyline points="22,6 12,13 2,6" />
+                        </svg>
+                        Email
+                    </label>
+                    <input type="email" id="email" name="Email" placeholder="admin@automarket.com" required>
+                    <span class="input-hint">Email será usado para login</span>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="password">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        </svg>
+                        Password Inicial
+                    </label>
+                    <div style="position: relative;">
+                        <input type="password" id="password" name="Password" placeholder="Mínimo 8 caracteres" required minlength="8">
+                        <button type="button" onclick="togglePassword()" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #667eea;">
+                            <i class="fas fa-eye" id="toggleIcon"></i>
+                        </button>
+                    </div>
+                    <span class="input-hint">⚠️ Esta password será enviada por email ao novo administrador</span>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <strong>Informação Importante:</strong>
+                    <p>O novo administrador receberá um email com as credenciais de acesso. Recomende que altere a password após o primeiro login.</p>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-save">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="8.5" cy="7" r="4" />
+                        <line x1="20" y1="8" x2="20" y2="14" />
+                        <line x1="23" y1="11" x2="17" y2="11" />
+                    </svg>
+                    Criar Administrador
+                </button>
+                <a href="@Url.Action("Configuracoes", "Admin")" class="btn-cancel">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </section>
+</main>
+
+<div id="popup-overlay" class="popup-hidden">
+    <div class="popup">
+        <div class="popup-header">
+            <h3 id="popup-title"></h3>
+            <button type="button" class="popup-close" onclick="closePopup()">×</button>
+        </div>
+        <div class="popup-body" id="popup-message"></div>
+        <div class="popup-footer">
+            <button class="popup-btn" onclick="closePopup()">OK</button>
+        </div>
+    </div>
+</div>
+
+<div id="flash-messages"
+     data-sucesso="@TempData["Sucesso"]"
+     data-erro="@TempData["Erro"]">
+</div>
+
+
+
+@section Scripts {
+<script>
+    function togglePassword() {
+        const input = document.getElementById('password');
+        const icon = document.getElementById('toggleIcon');
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+
+    function showPopup(title, message, redirect = false) {
+        document.getElementById('popup-title').innerText = title;
+        document.getElementById('popup-message').innerText = message;
+        document.getElementById('popup-overlay').classList.remove('popup-hidden');
+
+        if (redirect) {
+            document.querySelector('.popup-btn').onclick = () => {
+                window.location.href = '@Url.Action("Configuracoes", "Admin")';
+            };
+        }
+    }
+
+    function closePopup() {
+        document.getElementById('popup-overlay').classList.add('popup-hidden');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const flash = document.getElementById('flash-messages');
+        const sucesso = flash.dataset.sucesso;
+        const erro = flash.dataset.erro;
+
+        if (sucesso) {
+            showPopup('Sucesso', sucesso, true);
+        }
+
+        if (erro) {
+            showPopup('Erro', erro);
+        }
+    });
+
+    document.querySelector('form').addEventListener('submit', function (e) {
+        const password = document.getElementById('password').value;
+        const email = document.getElementById('email').value;
+        const nome = document.getElementById('nome').value;
+
+        if (password.length < 8) {
+            e.preventDefault();
+            showPopup('Password inválida', 'A password deve ter no mínimo 8 caracteres.');
+            return;
+        }
+
+        if (!email.includes('@@') || !email.includes('.')) {
+            e.preventDefault();
+            showPopup('Email inválido', 'Por favor, insira um email válido.');
+            return;
+        }
+
+        if (nome.trim().length < 3) {
+            e.preventDefault();
+            showPopup('Nome inválido', 'O nome deve ter no mínimo 3 caracteres.');
+        }
+    });
+</script>
+}

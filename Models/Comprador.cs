@@ -15,4 +15,5 @@ public class Comprador
     public ICollection<Reserva>? Reservas { get; set; }
     public ICollection<Compra>? Compras { get; set; }
     public ICollection<Favorito>? Favoritos { get; set; }
+
 }

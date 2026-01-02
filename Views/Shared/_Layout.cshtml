@@ -13,6 +13,68 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-Bx8zjXlfI9/..." crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
+
+<style>
+    #scrollTopBtn {
+        position: fixed;
+        bottom: 15px; /* mais perto do canto inferior */
+        right: 15px; /* mais perto do canto direito */
+        z-index: 1000;
+        background-color: #1a237e; /* azul escuro */
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 35px; /* menor */
+        height: 35px; /* menor */
+        font-size: 16px;
+        cursor: pointer;
+        display: none; /* inicialmente escondido */
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        transition: background-color 0.3s;
+    }
+
+        #scrollTopBtn:hover {
+            background-color: #0d154f; /* azul ainda mais escuro ao passar */
+        }
+
+    .btn-notifications {
+        position: relative; /* muito importante */
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 35px;
+        height: 35px;
+        background-color: #1a237e;
+        color: white;
+        border-radius: 50%;
+        text-decoration: none;
+        font-size: 16px;
+        margin-right: 10px;
+        transition: background-color 0.3s;
+    }
+
+        .btn-notifications:hover {
+            background-color: #0d154f; /* azul mais escuro ao passar */
+        }
+
+    .notification-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background-color: #e53935; /* vermelho */
+        color: white;
+        border-radius: 50%;
+        padding: 2px 6px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        line-height: 1;
+        box-shadow: 0 0 2px rgba(0,0,0,0.3);
+    }
+
+
+</style>
+
+
 <body class="@(User.IsInRole("Admin") ? "admin" : "")">
     <header>
         <a asp-controller="Home" asp-action="Index" class="logo">
@@ -37,6 +99,21 @@
                 {
                     <a asp-controller="Anuncio" asp-action="CreateAnuncio" class="btn-create-ad" title="Criar Anúncio">
                         <i class="fas fa-plus"></i> Criar Anúncio
+                    </a>
+                }
+
+                @if (User.Identity.IsAuthenticated && (User.IsInRole("Comprador")))
+                {
+                    <a asp-controller="Favoritos" asp-action="MarcasFavoritas" class="btn-notifications" title="Minhas Marcas Favoritas">
+                        <i class="fas fa-star"></i>
+                    </a>
+
+                    <a asp-controller="Notificacoes" asp-action="Index" class="btn-notifications" title="Notificações">
+                        <i class="fas fa-bell"></i>
+                        @if (ViewBag.UnreadCount != null && ViewBag.UnreadCount > 0)
+                        {
+                            <span class="notification-badge">@ViewBag.UnreadCount</span>
+                        }
                     </a>
                 }
 
@@ -110,8 +187,8 @@
                 <div class="footer-col">
                     <h4>Siga-nos</h4>
                     <ul class="socials">
-                        <li><a href="https://www.facebook.com/salome.batista.161">Facebook</a></li>
-                        <li><a href="https://www.instagram.com/_salomecb/">Instagram</a></li>
+                        <li><a href="#">Facebook</a></li>
+                        <li><a href="#">Instagram</a></li>
                         <li><a href="#">LinkedIn</a></li>
                     </ul>
                 </div>
@@ -122,6 +199,12 @@
             <p>© 2025 AutoMarket. Todos os direitos reservados.</p>
         </div>
     </footer>
+
+    <!-- Botão Voltar ao Topo -->
+    <button id="scrollTopBtn" title="Ir para o topo">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
 
     @RenderSection("Scripts", required: false)
     <script>
@@ -137,6 +220,34 @@
                 if (dropdown) dropdown.style.display = 'none';
             }
         }
+    </script>
+    <script>
+        const scrollBtn = document.getElementById("scrollTopBtn");
+
+        // Mostrar botão quando o usuário rolar 200px para baixo
+        window.onscroll = function() {
+            scrollBtn.style.display = document.body.scrollTop > 200 || document.documentElement.scrollTop > 200 ? "block" : "none";
+        };
+
+        // Rolar suavemente passo a passo em no máximo 1s
+        scrollBtn.onclick = function() {
+            const duration = 1000; // duração máxima em ms
+            const start = window.pageYOffset;
+            const startTime = performance.now();
+
+            function scrollStep(timestamp) {
+                const elapsed = timestamp - startTime;
+                const progress = Math.min(elapsed / duration, 1); // 0 a 1
+                const ease = 1 - Math.pow(1 - progress, 3); // easing cúbico suave
+                window.scrollTo(0, start * (1 - ease));
+
+                if (progress < 1) {
+                    requestAnimationFrame(scrollStep);
+                }
+            }
+
+            requestAnimationFrame(scrollStep);
+        };
     </script>
 
 </body>

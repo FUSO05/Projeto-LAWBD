@@ -7,12 +7,12 @@ using Microsoft.EntityFrameworkCore;
 namespace AutoMarket.Controllers
 {
     [Authorize]
-    public class CheckoutController : Controller
+    public class CheckoutController : BaseController
     {
         private readonly AppDbContext _context;
         private readonly EmailService _emailService;
 
-        public CheckoutController(AppDbContext context, EmailService emailService)
+        public CheckoutController(AppDbContext context, EmailService emailService) : base(context)
         {
             _context = context;
             _emailService = emailService;

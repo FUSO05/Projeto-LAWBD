@@ -10,12 +10,12 @@ using AutoMarket.Models.ViewModels;
 namespace AutoMarket.Controllers
 {
     [Authorize]
-    public class AnuncioController : Controller
+    public class AnuncioController : BaseController
     {
         private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _environment;
 
-        public AnuncioController(AppDbContext context, IWebHostEnvironment environment)
+        public AnuncioController(AppDbContext context, IWebHostEnvironment environment) : base(context)
         {
             _context = context;
             _environment = environment;
@@ -38,6 +38,7 @@ namespace AutoMarket.Controllers
         }
 
         // POST: Anuncios/Create
+        // POST: Anuncios/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateAnuncio(CreateAnuncioViewModel viewModel)
@@ -58,6 +59,7 @@ namespace AutoMarket.Controllers
 
                 // Buscar o vendedor associado ao utilizador
                 var vendedor = await _context.Vendedores
+                    .Include(v => v.Utilizador)
                     .FirstOrDefaultAsync(v => v.Id.ToString() == userId);
 
                 if (vendedor == null)
@@ -84,8 +86,6 @@ namespace AutoMarket.Controllers
                     Estado = viewModel.Estado,
                     Defeito = viewModel.Defeito,
                     Localizacao = viewModel.Localizacao,
-                    //Latitude = viewModel.Latitude,
-                    //Longitude = viewModel.Longitude,
                     DataCriacao = DateTime.Now
                 };
 
@@ -97,42 +97,68 @@ namespace AutoMarket.Controllers
                 {
                     var uploadsFolder = Path.Combine(_environment.WebRootPath, "img", "Anuncios");
 
-                    // Criar pasta se não existir
                     if (!Directory.Exists(uploadsFolder))
-                    {
                         Directory.CreateDirectory(uploadsFolder);
-                    }
 
                     foreach (var imagem in viewModel.Imagens)
                     {
                         if (imagem.Length > 0)
                         {
-                            // Validar tamanho da imagem (5MB)
                             if (imagem.Length > 5 * 1024 * 1024)
                             {
                                 ModelState.AddModelError("Imagens", "Cada imagem deve ter no máximo 5MB");
                                 continue;
                             }
 
-                            // Gerar nome único para a imagem
                             var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(imagem.FileName)}";
                             var filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
-                            // Salvar o arquivo
                             using (var stream = new FileStream(filePath, FileMode.Create))
                             {
                                 await imagem.CopyToAsync(stream);
                             }
 
-                            // Criar registro da imagem no banco
                             var imagemAnuncio = new Imagem
                             {
                                 AnuncioId = anuncio.Id,
-                                UrlImagem = $"/img/Anuncios/{uniqueFileName}",
+                                UrlImagem = $"/img/Anuncios/{uniqueFileName}"
                             };
 
                             _context.Imagens.Add(imagemAnuncio);
                         }
+                    }
+
+                    await _context.SaveChangesAsync();
+                }
+
+                // --- ENVIAR NOTIFICAÇÕES ---
+                // Buscar a marca do anúncio
+                var modelo = await _context.Modelos
+                    .Include(m => m.Marca)
+                    .FirstOrDefaultAsync(m => m.Id == viewModel.ModeloId);
+
+                if (modelo != null)
+                {
+                    var marcaId = modelo.MarcaId;
+
+                    // Buscar todos os usuários (compradores e vendedores) que favoritaram a marca
+                    var usuariosNotificar = await _context.MarcasFavoritas
+                        .Where(mf => mf.MarcaId == marcaId)
+                        .Select(mf => mf.Utilizador)
+                        .ToListAsync();
+
+                    foreach (var user in usuariosNotificar)
+                    {
+                        var notificacao = new Notificacao
+                        {
+                            UtilizadorId = user.Id,
+                            Titulo = "Nova Oferta!",
+                            Mensagem = $"Um novo veículo da marca {modelo.Marca.Nome} foi adicionado.",
+                            Lida = false,
+                            DataCriada = DateTime.Now
+                        };
+
+                        _context.Notificacoes.Add(notificacao);
                     }
 
                     await _context.SaveChangesAsync();
@@ -148,6 +174,7 @@ namespace AutoMarket.Controllers
                 return View("~/Views/Anuncio/CreateAnuncio.cshtml", viewModel);
             }
         }
+
 
         [Authorize(Roles = "Vendedor")]
         public async Task<IActionResult> Edit(int id)

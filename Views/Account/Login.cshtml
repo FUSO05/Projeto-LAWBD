@@ -4,6 +4,47 @@
 
 @section Styles {
     <link rel="stylesheet" href="~/css/login.css" />
+    <style>
+        /* Popup global */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .popup-box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 0 15px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .popup-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-close-popup {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
 }
 
 <main>
@@ -31,3 +72,48 @@
         </form>
     </div>
 </main>
+
+<!-- Popup global de erro/login -->
+<div id="loginPopup" class="popup-overlay">
+    <div class="popup-box">
+        <h3 id="loginPopupTitle">Erro</h3>
+        <p id="loginPopupMessage">Mensagem de erro</p>
+        <div class="popup-buttons">
+            <button class="btn-close-popup" onclick="closeLoginPopup()">OK</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function showLoginPopup(title, message) {
+            document.getElementById('loginPopupTitle').textContent = title;
+            document.getElementById('loginPopupMessage').textContent = message;
+            document.getElementById('loginPopup').style.display = 'flex';
+        }
+
+        function closeLoginPopup() {
+            document.getElementById('loginPopup').style.display = 'none';
+        }
+
+        // Fechar popup ao clicar fora
+        document.getElementById('loginPopup').addEventListener('click', function(e) {
+            if(e.target === this) closeLoginPopup();
+        });
+
+        // Verificar se há mensagens de erro no ModelState
+        @if (!ViewData.ModelState.IsValid)
+        {
+                var firstError = ViewData.ModelState.Values
+                                                    .SelectMany(v => v.Errors)
+                                                    .FirstOrDefault()?.ErrorMessage;
+
+                if (!string.IsNullOrEmpty(firstError))
+                {
+                        <text>
+                        showLoginPopup('Login falhou', '@Html.Raw(firstError)');
+                        </text>
+                }
+        }
+    </script>
+}

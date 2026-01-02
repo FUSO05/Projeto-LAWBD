@@ -40,6 +40,14 @@
             </a>
         </li>
 
+        <li>
+            <a asp-controller="Admin"
+               asp-action="Historico"
+               class="@(ViewContext.RouteData.Values["action"]?.ToString() == "Historico" ? "active" : "")">
+                Histórico
+            </a>
+        </li>
+
         <li class="divider"></li>
 
         <li>

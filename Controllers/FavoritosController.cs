@@ -1,15 +1,17 @@
 ﻿using AutoMarket.Models;
+using AutoMarket.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace AutoMarket.Controllers
 {
-    public class FavoritosController : Controller
+    public class FavoritosController : BaseController
     {
         private readonly AppDbContext _context;
 
-        public FavoritosController(AppDbContext context)
+        public FavoritosController(AppDbContext context) : base(context)
         {
             _context = context;
         }
@@ -103,5 +105,60 @@ namespace AutoMarket.Controllers
                 return StatusCode(500, new { error = ex.Message });
             }
         }
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> MarcasFavoritas()
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdClaim))
+                return Unauthorized("Usuário não autenticado.");
+
+            var userId = int.Parse(userIdClaim);
+
+            var todasMarcas = await _context.Marcas.ToListAsync();
+            var marcasFavoritas = await _context.MarcasFavoritas
+                .Where(mf => mf.UtilizadorId == userId)
+                .ToListAsync();
+
+            var model = new MarcasFavoritasViewModel
+            {
+                TodasMarcas = todasMarcas,
+                MarcasFavoritas = marcasFavoritas ?? new List<MarcaFavorita>() // previne null no View
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> SalvarMarcasFavoritas([FromBody] List<int> marcaIds)
+        {
+            // Pega o ID do usuário autenticado
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdClaim))
+                return Unauthorized(new { error = "Usuário não autenticado." });
+
+            var userId = int.Parse(userIdClaim);
+
+            // Remover antigas
+            var antigas = _context.MarcasFavoritas.Where(mf => mf.UtilizadorId == userId);
+            _context.MarcasFavoritas.RemoveRange(antigas);
+
+            // Adicionar novas
+            foreach (var id in marcaIds)
+            {
+                _context.MarcasFavoritas.Add(new MarcaFavorita
+                {
+                    UtilizadorId = userId,
+                    MarcaId = id
+                });
+            }
+
+            await _context.SaveChangesAsync();
+            return Json(new { success = true });
+        }
+
+
     }
 }
