@@ -71,6 +71,16 @@ Projeto desenvolvido no âmbito da UC **Laboratório de Aplicações Web e Bases
 
 ---
 
+## 👩‍💻 Autoria e Contribuições
+
+Este projeto foi desenvolvido no âmbito da unidade curricular **Laboratório de Aplicações Web e Bases de Dados (LAWBD)**.
+
+A implementação técnica do projeto (backend, frontend, base de dados, arquitetura e integração) foi realizada maioritariamente por **Luís Nunes**, responsável por mais de **90% do desenvolvimento total**, conforme o histórico de commits deste repositório.
+
+Os restantes elementos contribuíram principalmente em fases de planeamento, revisão e validação académica.
+
+---
+
 ## 📄 Licença
 
 Este projeto foi desenvolvido exclusivamente para fins académicos.
